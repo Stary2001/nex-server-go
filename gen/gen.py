@@ -570,7 +570,7 @@ structs.add("RVConnectionData")
 structs.add("Data")
 structs.add("Structure")
 
-for s in structs:
+for s in sorted(structs):
 	struct = "type {} struct {{\n".format(s)
 	for field in types[s].fields:
 		field_name = field[0]
@@ -682,7 +682,7 @@ struct_out_method = """func (stream *OutputStream) Struct(out interface{}) {
 
 memes = ""
 
-for s in structs:
+for s in sorted(structs):
 	method_in_text = "func (stream *InputStream) Struct{}() (in {}) {{\n".format(s,s)
 	method_out_text = "func (stream *OutputStream) Struct{}(out {}) {{\n".format(s,s)
 
@@ -723,7 +723,7 @@ switch typeName {\n"""
 list_out_method = """func (stream *OutputStream) List(cb interface{}, list interface{}) {
 switch list.(type) {\n"""
 
-for t in list_types:
+for t in sorted(list_types):
 	type_name_safe = t.replace("<", "_").replace(">", "_")
 	real_type_name = get_type(t).type_name()
 	method_in_text = "func (stream *InputStream) List{}(cb func(*InputStream){}) []{} {{".format(type_name_safe, real_type_name,real_type_name)
@@ -776,12 +776,14 @@ switch typeName {\n"""
 map_out_method = """func (stream *OutputStream) Map(cb interface{}, m interface{}) {
 switch m.(type) {\n"""
 
-for m in map_pairs:
+for m in sorted(map_pairs):
 	type_name_safe = m[0].replace("<", "_").replace(">", "_").replace(",","") + "_" + m[1].replace("<", "_").replace(">", "_").replace(",","")
 	real_key_type_name = get_type(m[0]).type_name()
 	real_value_type_name = get_type(m[1]).type_name()
-	method_in_text = "func (stream *InputStream) Map{}(cb func(*InputStream)({},{})) map[{}]{} {{".format(type_name_safe, real_key_type_name, real_value_type_name, real_key_type_name, real_value_type_name)
-	method_out_text = "func (stream *OutputStream) Map{}(cb func(*OutputStream,{},{})(), out map[{}]{}) () {{\n".format(type_name_safe, real_key_type_name, real_value_type_name, real_key_type_name, real_value_type_name)
+	kv = (real_key_type_name, real_value_type_name)
+
+	method_in_text = "func (stream *InputStream) Map{}(cb func(*InputStream)({},{})) map[{}]{} {{".format(type_name_safe, *kv, *kv)
+	method_out_text = "func (stream *OutputStream) Map{}(cb func(*OutputStream,{},{})(), out map[{}]{}) () {{\n".format(type_name_safe, *kv, *kv)
 
 	method_in_text += """
     map_len := int(stream.UInt32LE())
@@ -791,7 +793,7 @@ for m in map_pairs:
 		m[key] = value
 	}}
 	return m
-}}\n""".format(real_key_type_name, real_value_type_name)
+}}\n""".format(*kv)
 
 	method_out_text += """
 	length := len(out)
@@ -802,8 +804,8 @@ for m in map_pairs:
 	return
 }}\n""".format(real_type_name)
 	
-	map_in_method += "    case \"{}\":\n        return stream.Map{}(cb.(func(*InputStream)({},{})))\n".format("Map<{},{}>".format(m[0], m[1]), type_name_safe, real_key_type_name, real_value_type_name)
-	map_out_method += "    case map[{}]{}:\n        stream.Map{}(cb.(func(*OutputStream,{},{})), m.(map[{}]{}))\n".format(real_key_type_name, real_value_type_name, type_name_safe, real_key_type_name, real_value_type_name, real_key_type_name, real_value_type_name)
+	map_in_method += "    case \"{}\":\n        return stream.Map{}(cb.(func(*InputStream)({},{})))\n".format("Map<{},{}>".format(m[0], m[1]), type_name_safe, *kv)
+	map_out_method += "    case map[{}]{}:\n        stream.Map{}(cb.(func(*OutputStream,{},{})), m.(map[{}]{}))\n".format(*kv, type_name_safe, *kv, *kv)
 
 	memes += method_in_text
 	memes += method_out_text
