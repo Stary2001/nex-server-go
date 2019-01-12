@@ -18,16 +18,6 @@ func nexServerHandleData(Client *NEX.Client, Packet *NEX.Packet) {
 	ResponsePacket.SetDestination(Packet.Source)
 	ResponsePacket.SetType(NEX.Types["Data"])
 
-	pid := 1234567890          // account PID/NEX username (dummy)
-	password := "nex_password" // account NEX password (dummy)
-
-	key := []byte(password)
-
-	for i := 0; i < 65000+pid%1024; i++ {
-		key = NEX.MD5Hash(key)
-	}
-
-	//Kerberos := NEX.NewKerberos(string(key))
 	proto_id := Packet.RMCRequest.ProtocolID & ^uint8(0x80)
 	proto, ok := NEXProtocols.Protocols[proto_id]
 
@@ -44,8 +34,12 @@ func nexServerHandleData(Client *NEX.Client, Packet *NEX.Packet) {
 		panic(fmt.Sprintf("Unimplemented protocol id %02x!", proto_id))
 	}
 
+
+	ResponsePacket.Flags |= NEX.Flags["HasSize"] | NEX.Flags["Reliable"] | NEX.Flags["NeedsAck"]
 	ResponsePacket.SetPayload(response.Bytes())
 	Client.Server.Send(Client, &ResponsePacket)
+
+	Client.Server.Acknowledge(Packet)
 }
 
 func secureServerHandleConnect(Client *NEX.Client, Packet *NEX.Packet) {
@@ -82,7 +76,7 @@ func secureServerHandleConnect(Client *NEX.Client, Packet *NEX.Packet) {
 func createNexServer(settings NEX.Settings) *NEX.Server {
 	Server := NEX.NewServer(settings)
 	Server.On("Packet", func(Client *NEX.Client, Packet *NEX.Packet) {
-		if Packet.HasFlag(NEX.Flags["NeedAck"]) && Packet.Type != NEX.Types["Connect"]{
+		if Packet.HasFlag(NEX.Flags["NeedAck"]) && Packet.Type != NEX.Types["Connect"] && Packet.Type != NEX.Types["Data"] {
 			Server.Acknowledge(Packet)
 		}
 	})
@@ -107,9 +101,9 @@ func main() {
 		Client.Server.Acknowledge(Packet)
 	})
 
-	go AuthServer.Listen(":60000")
+	go AuthServer.Listen(":60900")
 
 	SecureServer := createNexServer(settings)
 	SecureServer.On("Connect", secureServerHandleConnect)
-	SecureServer.Listen(":60001")
+	SecureServer.Listen(":60901")
 }

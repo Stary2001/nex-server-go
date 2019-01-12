@@ -1132,7 +1132,7 @@ func Remote_Log_Device_Log(Message string) (rmcResult uint32, ) {
     rmcResult = 0x80010002
     return
 }
-func Secure_Connection_Register(VecMyURLs []NEX.StationURL) (rmcResult uint32, returnValue NEX.Result, PidConnectionID uint32, UrlPublic NEX.StationURL) {
+/*func Secure_Connection_Register(VecMyURLs []NEX.StationURL) (rmcResult uint32, returnValue NEX.Result, PidConnectionID uint32, UrlPublic NEX.StationURL) {
     rmcResult = 0x80010002
     return
 }
@@ -1163,7 +1163,7 @@ func Secure_Connection_ReplaceURL(Target NEX.StationURL, Url NEX.StationURL) (rm
 func Secure_Connection_SendReport(ReportId uint32, ReportData NEX.QBuffer) (rmcResult uint32, ) {
     rmcResult = 0x80010002
     return
-}
+}*/
 func Simple_Authentication_LoginWithTokenEx(StrToken string, PConnectionData NEX.RVConnectionData, OAnyData NEX.Data) (rmcResult uint32, returnValue NEX.Result, PidPrincipal uint32, PConnectionDataOut NEX.RVConnectionData, StrReturnMsg string) {
     rmcResult = 0x80010002
     return
