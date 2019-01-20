@@ -432,7 +432,7 @@ func Friends_3DS_UpdatePreference(Unknown bool, Unknown2 bool, Unknown3 bool) (r
     rmcResult = 0x80010002
     return
 }
-func Friends_3DS_GetFriendMii(Friends []NEX.FriendMiiRequest) (rmcResult uint32, ) {
+func Friends_3DS_GetFriendMii(Friends []NEX.FriendMiiRequest) (rmcResult uint32, Miis []NEX.FriendMii) {
     rmcResult = 0x80010002
     return
 }

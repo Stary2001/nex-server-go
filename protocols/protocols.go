@@ -18,7 +18,7 @@ func RegisterProtocols() {
 	Protocols[0x65] = NEXProtocol { 0x65, make(map[uint32]NEXMethod) } // Friends (3DS)
 
 	Protocols[0xa].Methods[1] = Authentication_Login_Wrapper
-	Protocols[0xa].Methods[1] = Authentication_LoginEx_Wrapper
+	Protocols[0xa].Methods[2] = Authentication_LoginEx_Wrapper
 	Protocols[0xa].Methods[3] = Authentication_RequestTicket_Wrapper
 	Protocols[0xa].Methods[4] = Authentication_GetPID_Wrapper
 	Protocols[0xa].Methods[5] = Authentication_LoginWithContext_Wrapper

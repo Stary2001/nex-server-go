@@ -1592,8 +1592,9 @@ func Friends_3DS_UpdatePreference_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
 func Friends_3DS_GetFriendMii_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     Friends := stream.List("FriendMiiRequest", func (innerStream *NEX.InputStream) NEX.FriendMiiRequest { return innerStream.Struct("FriendMiiRequest").(NEX.FriendMiiRequest) }).([]NEX.FriendMiiRequest)
-    rmcResult := Friends_3DS_GetFriendMii(Friends)
+    rmcResult, Miis := Friends_3DS_GetFriendMii(Friends)
     responseStream := NEX.NewOutputStream()
+    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendMii) { innerStream.Struct(data) }, Miis)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -4219,7 +4220,7 @@ func Secure_Connection_RegisterEx_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
     stream := NEX.NewInputStream(req.Parameters)
     VecMyURLs := stream.List("StationURL", func (innerStream *NEX.InputStream) NEX.StationURL { return NEX.StationURL(innerStream.String()) }).([]NEX.StationURL)
     HCustomData := stream.Struct("Data").(NEX.Data)
-    rmcResult, returnValue,PidConnectionID,UrlPublic := Secure_Connection_RegisterEx(VecMyURLs, HCustomData)
+    rmcResult,returnValue,PidConnectionID,UrlPublic := Secure_Connection_RegisterEx(VecMyURLs,HCustomData)
     responseStream := NEX.NewOutputStream()
     responseStream.UInt32LE(uint32(returnValue))
     responseStream.UInt32LE(PidConnectionID)
