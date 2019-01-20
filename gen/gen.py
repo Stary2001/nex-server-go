@@ -449,6 +449,8 @@ def methods_pass(f):
 					skip_table = False
 			elif l.startswith('This method does not take any request data') or l.startswith('This method does not take any parameters'):
 				state = MethodResponse
+			elif l == 'Same as response for the [Register](#1-register) method.': # Hack!
+				current_method.response = method_infos[1].response
 			elif l.startswith('This method does not return anything') or l.startswith("This method doesn't return anything"):
 				state = SearchingForMethod
 				current_method.request = dedup(current_method.request)
@@ -644,7 +646,11 @@ stubs_file.write("""import (
 	NEX "github.com/Stary2001/nex-go"
 	)\n""")
 
+blacklist = ["Authentication (0x0A)", "Secure Connection (0x0B)", "Friends 3DS (0x65)"] # Update as new protocols are added.
+
 for p in sorted(proto_info):
+	if p in blacklist:
+		stubs_file.write("/*")
 	methods = proto_info[p]
 	proto_name = "_".join(p.split(" ")[:-1])
 	for m in sorted(methods):
@@ -654,6 +660,10 @@ for p in sorted(proto_info):
 		method_text += "    rmcResult = 0x80010002\n    return\n"
 		method_text += "}\n"
 		stubs_file.write(method_text)
+	
+	if p in blacklist:
+		stubs_file.seek(stubs_file.tell() - 1) # This is real dumb
+		stubs_file.write("*/\n")
 stubs_file.close()
 
 in_nex = True
