@@ -474,8 +474,14 @@ func Authentication_LoginEx_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     StrUserName := string(stream.String())
     OExtraData := stream.Struct("Data").(NEX.Data)
-    rmcResult := Authentication_LoginEx(StrUserName,OExtraData)
+    rmcResult, returnValue,PidPrincipal,PbufResponse,PConnectionData,StrReturnMsg,PSourceKey := Authentication_LoginEx(StrUserName,OExtraData)
     responseStream := NEX.NewOutputStream()
+    responseStream.UInt32LE(uint32(returnValue))
+    responseStream.UInt32LE(uint32(PidPrincipal))
+    responseStream.Buffer(PbufResponse)
+    responseStream.Struct(PConnectionData)
+    responseStream.String(string(StrReturnMsg))
+    responseStream.String(string(PSourceKey))
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1320,501 +1326,6 @@ func Data_Store_FetchMyInfos_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     }
     return
 }
-func Friends_3DS_UpdateProfile_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    ProfileData := stream.Struct("MyProfile").(NEX.MyProfile)
-    rmcResult := Friends_3DS_UpdateProfile(ProfileData)
-    responseStream := NEX.NewOutputStream()
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_3DS_UpdateMii_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Mii := stream.Struct("Mii").(NEX.Mii)
-    rmcResult := Friends_3DS_UpdateMii(Mii)
-    responseStream := NEX.NewOutputStream()
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_3DS_UpdateMiiList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    MiiList := stream.Struct("MiiList").(NEX.MiiList)
-    rmcResult := Friends_3DS_UpdateMiiList(MiiList)
-    responseStream := NEX.NewOutputStream()
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_3DS_UpdatePlayedGames_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    PlayedGames := stream.List("PlayedGame", func (innerStream *NEX.InputStream) NEX.PlayedGame { return innerStream.Struct("PlayedGame").(NEX.PlayedGame) }).([]NEX.PlayedGame)
-    rmcResult := Friends_3DS_UpdatePlayedGames(PlayedGames)
-    responseStream := NEX.NewOutputStream()
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_3DS_UpdatePreference_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Unknown := stream.Bool()
-    Unknown2 := stream.Bool()
-    Unknown3 := stream.Bool()
-    rmcResult := Friends_3DS_UpdatePreference(Unknown,Unknown2,Unknown3)
-    responseStream := NEX.NewOutputStream()
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_3DS_GetFriendRelationships_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Unknown := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
-    rmcResult, FriendRelationships := Friends_3DS_GetFriendRelationships(Unknown)
-    responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendRelationship) { innerStream.Struct(data) }, FriendRelationships)
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_3DS_AddFriendByPrincipalID_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Unknown := stream.UInt64LE()
-    PrincipalId := stream.UInt32LE()
-    rmcResult, FriendRelationship := Friends_3DS_AddFriendByPrincipalID(Unknown,PrincipalId)
-    responseStream := NEX.NewOutputStream()
-    responseStream.Struct(FriendRelationship)
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_3DS_GetAllFriends_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    rmcResult, FriendRelationships := Friends_3DS_GetAllFriends()
-    responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendRelationship) { innerStream.Struct(data) }, FriendRelationships)
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_3DS_SyncFriend_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Unknown := stream.UInt64LE()
-    Unknown2 := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
-    Unknown3 := stream.List("Uint64", func (innerStream *NEX.InputStream) uint64 { return innerStream.UInt64LE() }).([]uint64)
-    rmcResult, FriendList := Friends_3DS_SyncFriend(Unknown,Unknown2,Unknown3)
-    responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendRelationship) { innerStream.Struct(data) }, FriendList)
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_3DS_UpdatePresence_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    PresenceInfo := stream.Struct("NintendoPresence").(NEX.NintendoPresence)
-    Unknown := stream.Bool()
-    rmcResult := Friends_3DS_UpdatePresence(PresenceInfo,Unknown)
-    responseStream := NEX.NewOutputStream()
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_3DS_UpdateFavoriteGameKey_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    GameKey := stream.Struct("GameKey").(NEX.GameKey)
-    rmcResult := Friends_3DS_UpdateFavoriteGameKey(GameKey)
-    responseStream := NEX.NewOutputStream()
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_3DS_UpdateComment_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Comment := string(stream.String())
-    rmcResult := Friends_3DS_UpdateComment(Comment)
-    responseStream := NEX.NewOutputStream()
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_3DS_GetFriendPresence_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Unknown := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
-    rmcResult, FriendPresenceList := Friends_3DS_GetFriendPresence(Unknown)
-    responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendPresence) { innerStream.Struct(data) }, FriendPresenceList)
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_3DS_GetFriendPicture_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Unknown := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
-    rmcResult, FriendPictures := Friends_3DS_GetFriendPicture(Unknown)
-    responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendPicture) { innerStream.Struct(data) }, FriendPictures)
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_3DS_GetFriendPersistentInfo_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Unknown := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
-    rmcResult, PersistentInfo := Friends_3DS_GetFriendPersistentInfo(Unknown)
-    responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendPersistentInfo) { innerStream.Struct(data) }, PersistentInfo)
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_Wii_U_GetAllInformation_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    NNAInfo := stream.Struct("NNAInfo").(NEX.NNAInfo)
-    NintendoPresence := stream.Struct("NintendoPresenceV2").(NEX.NintendoPresenceV2)
-    Birthday := NEX.DateTime(stream.UInt64LE())
-    rmcResult, PrincipalPreference,StatusMessage,FriendList,SentFriendRequests,ReceivedFriendRequests,Blacklist,Unknown,Notifications,Unknown2 := Friends_Wii_U_GetAllInformation(NNAInfo,NintendoPresence,Birthday)
-    responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PrincipalPreference)
-    responseStream.Struct(StatusMessage)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendInfo) { innerStream.Struct(data) }, FriendList)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendRequest) { innerStream.Struct(data) }, SentFriendRequests)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendRequest) { innerStream.Struct(data) }, ReceivedFriendRequests)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.BlacklistedPrincipal) { innerStream.Struct(data) }, Blacklist)
-    responseStream.Bool(Unknown)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.PersistentNotification) { innerStream.Struct(data) }, Notifications)
-    responseStream.Bool(Unknown2)
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_Wii_U_AddFriend_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Pid := NEX.PID(stream.UInt32LE())
-    rmcResult, FriendRequest,FriendInfo := Friends_Wii_U_AddFriend(Pid)
-    responseStream := NEX.NewOutputStream()
-    responseStream.Struct(FriendRequest)
-    responseStream.Struct(FriendInfo)
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_Wii_U_AddFriendByName_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Name := string(stream.String())
-    rmcResult, FriendRequest,FriendInfo := Friends_Wii_U_AddFriendByName(Name)
-    responseStream := NEX.NewOutputStream()
-    responseStream.Struct(FriendRequest)
-    responseStream.Struct(FriendInfo)
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_Wii_U_RemoveFriend_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Pid := NEX.PID(stream.UInt32LE())
-    rmcResult := Friends_Wii_U_RemoveFriend(Pid)
-    responseStream := NEX.NewOutputStream()
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_Wii_U_AddFriendRequest_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Unknown := stream.UInt32LE()
-    Unknown2 := stream.UInt8()
-    Unknown3 := string(stream.String())
-    Unknown4 := stream.UInt8()
-    Unknown5 := string(stream.String())
-    GameKey := stream.Struct("GameKey").(NEX.GameKey)
-    Unknown6 := NEX.DateTime(stream.UInt64LE())
-    rmcResult, FriendRequest,FriendInfo := Friends_Wii_U_AddFriendRequest(Unknown,Unknown2,Unknown3,Unknown4,Unknown5,GameKey,Unknown6)
-    responseStream := NEX.NewOutputStream()
-    responseStream.Struct(FriendRequest)
-    responseStream.Struct(FriendInfo)
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_Wii_U_CancelFriendRequest_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Id := stream.UInt64LE()
-    rmcResult := Friends_Wii_U_CancelFriendRequest(Id)
-    responseStream := NEX.NewOutputStream()
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_Wii_U_AcceptFriendRequest_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Id := stream.UInt64LE()
-    rmcResult, FriendInfo := Friends_Wii_U_AcceptFriendRequest(Id)
-    responseStream := NEX.NewOutputStream()
-    responseStream.Struct(FriendInfo)
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_Wii_U_DeleteFriendRequest_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Id := stream.UInt64LE()
-    rmcResult := Friends_Wii_U_DeleteFriendRequest(Id)
-    responseStream := NEX.NewOutputStream()
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_Wii_U_DenyFriendRequest_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Id := stream.UInt64LE()
-    rmcResult, BlacklistedPrincipal := Friends_Wii_U_DenyFriendRequest(Id)
-    responseStream := NEX.NewOutputStream()
-    responseStream.Struct(BlacklistedPrincipal)
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_Wii_U_MarkFriendRequestsAsReceived_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    FriendRequests := stream.List("Uint64", func (innerStream *NEX.InputStream) uint64 { return innerStream.UInt64LE() }).([]uint64)
-    rmcResult := Friends_Wii_U_MarkFriendRequestsAsReceived(FriendRequests)
-    responseStream := NEX.NewOutputStream()
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_Wii_U_AddBlackList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    BlacklistedPrincipal := stream.Struct("BlacklistedPrincipal").(NEX.BlacklistedPrincipal)
-    rmcResult, BlacklistedPrincipalOut := Friends_Wii_U_AddBlackList(BlacklistedPrincipal)
-    responseStream := NEX.NewOutputStream()
-    responseStream.Struct(BlacklistedPrincipalOut)
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_Wii_U_RemoveBlackList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Pid := NEX.PID(stream.UInt32LE())
-    rmcResult := Friends_Wii_U_RemoveBlackList(Pid)
-    responseStream := NEX.NewOutputStream()
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_Wii_U_UpdatePresence_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    NintendoPresence := stream.Struct("NintendoPresenceV2").(NEX.NintendoPresenceV2)
-    rmcResult := Friends_Wii_U_UpdatePresence(NintendoPresence)
-    responseStream := NEX.NewOutputStream()
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_Wii_U_UpdateMii_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Mii := stream.Struct("MiiV2").(NEX.MiiV2)
-    rmcResult, Unknown := Friends_Wii_U_UpdateMii(Mii)
-    responseStream := NEX.NewOutputStream()
-    responseStream.UInt64LE(uint64(Unknown))
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_Wii_U_UpdateComment_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    StatusMessage := stream.Struct("Comment").(NEX.Comment)
-    rmcResult, Unknown := Friends_Wii_U_UpdateComment(StatusMessage)
-    responseStream := NEX.NewOutputStream()
-    responseStream.UInt64LE(uint64(Unknown))
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_Wii_U_UpdatePreference_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    PrincipalPreferenc := stream.Struct("PrincipalPreference").(NEX.PrincipalPreference)
-    rmcResult := Friends_Wii_U_UpdatePreference(PrincipalPreferenc)
-    responseStream := NEX.NewOutputStream()
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_Wii_U_GetBasicInfo_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Pids := stream.List("PID", func (innerStream *NEX.InputStream) NEX.PID { return NEX.PID(innerStream.UInt32LE()) }).([]NEX.PID)
-    rmcResult, Infos := Friends_Wii_U_GetBasicInfo(Pids)
-    responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.PrincipalBasicInfo) { innerStream.Struct(data) }, Infos)
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_Wii_U_DeleteFriendFlags_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Unknown := stream.List("PersistentNotification", func (innerStream *NEX.InputStream) NEX.PersistentNotification { return innerStream.Struct("PersistentNotification").(NEX.PersistentNotification) }).([]NEX.PersistentNotification)
-    rmcResult := Friends_Wii_U_DeleteFriendFlags(Unknown)
-    responseStream := NEX.NewOutputStream()
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_Wii_U_CheckSettingStatus_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    rmcResult, Unknown := Friends_Wii_U_CheckSettingStatus()
-    responseStream := NEX.NewOutputStream()
-    responseStream.UInt8(Unknown)
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
-func Friends_Wii_U_GetRequestBlockSettings_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
-    stream := NEX.NewInputStream(req.Parameters)
-    Unknown := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
-    rmcResult, Settings := Friends_Wii_U_GetRequestBlockSettings(Unknown)
-    responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.PrincipalRequestBlockSetting) { innerStream.Struct(data) }, Settings)
-    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
-    if rmcResult == 0x00010001  {
-    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
-    } else {
-    	ret.SetError(rmcResult)
-    }
-    return
-}
 func Friends_AddFriend_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     UiPlayer := stream.UInt32LE()
@@ -2011,13 +1522,11 @@ func Friends_GetRelationships_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) 
     }
     return
 }
-func Match_Making_Ext_EndParticipation_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+func Friends_3DS_UpdateProfile_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    IdGathering := stream.UInt32LE()
-    StrMessage := string(stream.String())
-    rmcResult, returnValue := Match_Making_Ext_EndParticipation(IdGathering,StrMessage)
+    ProfileData := stream.Struct("MyProfile").(NEX.MyProfile)
+    rmcResult := Friends_3DS_UpdateProfile(ProfileData)
     responseStream := NEX.NewOutputStream()
-    responseStream.Bool(returnValue)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2026,13 +1535,11 @@ func Match_Making_Ext_EndParticipation_Wrapper(req NEX.RMCRequest) (ret NEX.RMCR
     }
     return
 }
-func Match_Making_Ext_GetParticipants_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+func Friends_3DS_UpdateMii_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    IdGathering := stream.UInt32LE()
-    BOnlyActive := stream.Bool()
-    rmcResult, LstParticipants := Match_Making_Ext_GetParticipants(IdGathering,BOnlyActive)
+    Mii := stream.Struct("Mii").(NEX.Mii)
+    rmcResult := Friends_3DS_UpdateMii(Mii)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.PID) { innerStream.UInt32LE(uint32(data)) }, LstParticipants)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2041,13 +1548,11 @@ func Match_Making_Ext_GetParticipants_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRe
     }
     return
 }
-func Match_Making_Ext_GetDetailedParticipants_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+func Friends_3DS_UpdateMiiList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    IdGathering := stream.UInt32LE()
-    BOnlyActiv := stream.Bool()
-    rmcResult, LstParticipants := Match_Making_Ext_GetDetailedParticipants(IdGathering,BOnlyActiv)
+    MiiList := stream.Struct("MiiList").(NEX.MiiList)
+    rmcResult := Friends_3DS_UpdateMiiList(MiiList)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.ParticipantDetails) { innerStream.Struct(data) }, LstParticipants)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2056,12 +1561,11 @@ func Match_Making_Ext_GetDetailedParticipants_Wrapper(req NEX.RMCRequest) (ret N
     }
     return
 }
-func Match_Making_Ext_GetParticipantsURLs_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+func Friends_3DS_UpdatePlayedGames_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    LstGatherings := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
-    rmcResult, LstGatheringURLs := Match_Making_Ext_GetParticipantsURLs(LstGatherings)
+    PlayedGames := stream.List("PlayedGame", func (innerStream *NEX.InputStream) NEX.PlayedGame { return innerStream.Struct("PlayedGame").(NEX.PlayedGame) }).([]NEX.PlayedGame)
+    rmcResult := Friends_3DS_UpdatePlayedGames(PlayedGames)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.GatheringURLs) { innerStream.Struct(data) }, LstGatheringURLs)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2070,13 +1574,13 @@ func Match_Making_Ext_GetParticipantsURLs_Wrapper(req NEX.RMCRequest) (ret NEX.R
     }
     return
 }
-func Match_Making_Ext_GetGatheringRelations_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+func Friends_3DS_UpdatePreference_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Id := stream.UInt32LE()
-    Descr := string(stream.String())
-    rmcResult, returnValue := Match_Making_Ext_GetGatheringRelations(Id,Descr)
+    Unknown := stream.Bool()
+    Unknown2 := stream.Bool()
+    Unknown3 := stream.Bool()
+    rmcResult := Friends_3DS_UpdatePreference(Unknown,Unknown2,Unknown3)
     responseStream := NEX.NewOutputStream()
-    responseStream.String(string(returnValue))
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2085,12 +1589,466 @@ func Match_Making_Ext_GetGatheringRelations_Wrapper(req NEX.RMCRequest) (ret NEX
     }
     return
 }
-func Match_Making_Ext_DeleteFromDeletions_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+func Friends_3DS_GetFriendMii_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    LstDeletions := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    Friends := stream.List("FriendMiiRequest", func (innerStream *NEX.InputStream) NEX.FriendMiiRequest { return innerStream.Struct("FriendMiiRequest").(NEX.FriendMiiRequest) }).([]NEX.FriendMiiRequest)
+    rmcResult := Friends_3DS_GetFriendMii(Friends)
+    responseStream := NEX.NewOutputStream()
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_3DS_GetFriendMiiList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Friends := stream.List("FriendMiiRequest", func (innerStream *NEX.InputStream) NEX.FriendMiiRequest { return innerStream.Struct("FriendMiiRequest").(NEX.FriendMiiRequest) }).([]NEX.FriendMiiRequest)
+    rmcResult, MiiLists := Friends_3DS_GetFriendMiiList(Friends)
+    responseStream := NEX.NewOutputStream()
+    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendMiiList) { innerStream.Struct(data) }, MiiLists)
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_3DS_GetFriendRelationships_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Unknown := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    rmcResult, FriendRelationships := Friends_3DS_GetFriendRelationships(Unknown)
+    responseStream := NEX.NewOutputStream()
+    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendRelationship) { innerStream.Struct(data) }, FriendRelationships)
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_3DS_AddFriendByPrincipalID_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Unknown := stream.UInt64LE()
+    PrincipalId := stream.UInt32LE()
+    rmcResult, FriendRelationship := Friends_3DS_AddFriendByPrincipalID(Unknown,PrincipalId)
+    responseStream := NEX.NewOutputStream()
+    responseStream.Struct(FriendRelationship)
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_3DS_GetAllFriends_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    rmcResult, FriendRelationships := Friends_3DS_GetAllFriends()
+    responseStream := NEX.NewOutputStream()
+    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendRelationship) { innerStream.Struct(data) }, FriendRelationships)
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_3DS_SyncFriend_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Unknown := stream.UInt64LE()
+    Unknown2 := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    Unknown3 := stream.List("Uint64", func (innerStream *NEX.InputStream) uint64 { return innerStream.UInt64LE() }).([]uint64)
+    rmcResult, FriendList := Friends_3DS_SyncFriend(Unknown,Unknown2,Unknown3)
+    responseStream := NEX.NewOutputStream()
+    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendRelationship) { innerStream.Struct(data) }, FriendList)
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_3DS_UpdatePresence_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    PresenceInfo := stream.Struct("NintendoPresence").(NEX.NintendoPresence)
+    Unknown := stream.Bool()
+    rmcResult := Friends_3DS_UpdatePresence(PresenceInfo,Unknown)
+    responseStream := NEX.NewOutputStream()
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_3DS_UpdateFavoriteGameKey_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    GameKey := stream.Struct("GameKey").(NEX.GameKey)
+    rmcResult := Friends_3DS_UpdateFavoriteGameKey(GameKey)
+    responseStream := NEX.NewOutputStream()
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_3DS_UpdateComment_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Comment := string(stream.String())
+    rmcResult := Friends_3DS_UpdateComment(Comment)
+    responseStream := NEX.NewOutputStream()
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_3DS_GetFriendPresence_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Unknown := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    rmcResult, FriendPresenceList := Friends_3DS_GetFriendPresence(Unknown)
+    responseStream := NEX.NewOutputStream()
+    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendPresence) { innerStream.Struct(data) }, FriendPresenceList)
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_3DS_GetFriendPicture_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Unknown := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    rmcResult, FriendPictures := Friends_3DS_GetFriendPicture(Unknown)
+    responseStream := NEX.NewOutputStream()
+    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendPicture) { innerStream.Struct(data) }, FriendPictures)
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_3DS_GetFriendPersistentInfo_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Unknown := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    rmcResult, PersistentInfo := Friends_3DS_GetFriendPersistentInfo(Unknown)
+    responseStream := NEX.NewOutputStream()
+    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendPersistentInfo) { innerStream.Struct(data) }, PersistentInfo)
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_3DS_SendInvitation_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Unknown := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    rmcResult := Friends_3DS_SendInvitation(Unknown)
+    responseStream := NEX.NewOutputStream()
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_Wii_U_GetAllInformation_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    NNAInfo := stream.Struct("NNAInfo").(NEX.NNAInfo)
+    NintendoPresence := stream.Struct("NintendoPresenceV2").(NEX.NintendoPresenceV2)
+    Birthday := NEX.DateTime(stream.UInt64LE())
+    rmcResult, PrincipalPreference,StatusMessage,FriendList,SentFriendRequests,ReceivedFriendRequests,Blacklist,Unknown,Notifications,Unknown2 := Friends_Wii_U_GetAllInformation(NNAInfo,NintendoPresence,Birthday)
+    responseStream := NEX.NewOutputStream()
+    responseStream.Struct(PrincipalPreference)
+    responseStream.Struct(StatusMessage)
+    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendInfo) { innerStream.Struct(data) }, FriendList)
+    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendRequest) { innerStream.Struct(data) }, SentFriendRequests)
+    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendRequest) { innerStream.Struct(data) }, ReceivedFriendRequests)
+    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.BlacklistedPrincipal) { innerStream.Struct(data) }, Blacklist)
+    responseStream.Bool(Unknown)
+    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.PersistentNotification) { innerStream.Struct(data) }, Notifications)
+    responseStream.Bool(Unknown2)
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_Wii_U_AddFriend_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
     Pid := NEX.PID(stream.UInt32LE())
-    rmcResult := Match_Making_Ext_DeleteFromDeletions(LstDeletions,Pid)
+    rmcResult, FriendRequest,FriendInfo := Friends_Wii_U_AddFriend(Pid)
     responseStream := NEX.NewOutputStream()
+    responseStream.Struct(FriendRequest)
+    responseStream.Struct(FriendInfo)
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_Wii_U_AddFriendByName_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Name := string(stream.String())
+    rmcResult, FriendRequest,FriendInfo := Friends_Wii_U_AddFriendByName(Name)
+    responseStream := NEX.NewOutputStream()
+    responseStream.Struct(FriendRequest)
+    responseStream.Struct(FriendInfo)
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_Wii_U_RemoveFriend_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Pid := NEX.PID(stream.UInt32LE())
+    rmcResult := Friends_Wii_U_RemoveFriend(Pid)
+    responseStream := NEX.NewOutputStream()
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_Wii_U_AddFriendRequest_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Unknown := stream.UInt32LE()
+    Unknown2 := stream.UInt8()
+    Unknown3 := string(stream.String())
+    Unknown4 := stream.UInt8()
+    Unknown5 := string(stream.String())
+    GameKey := stream.Struct("GameKey").(NEX.GameKey)
+    Unknown6 := NEX.DateTime(stream.UInt64LE())
+    rmcResult, FriendRequest,FriendInfo := Friends_Wii_U_AddFriendRequest(Unknown,Unknown2,Unknown3,Unknown4,Unknown5,GameKey,Unknown6)
+    responseStream := NEX.NewOutputStream()
+    responseStream.Struct(FriendRequest)
+    responseStream.Struct(FriendInfo)
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_Wii_U_CancelFriendRequest_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Id := stream.UInt64LE()
+    rmcResult := Friends_Wii_U_CancelFriendRequest(Id)
+    responseStream := NEX.NewOutputStream()
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_Wii_U_AcceptFriendRequest_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Id := stream.UInt64LE()
+    rmcResult, FriendInfo := Friends_Wii_U_AcceptFriendRequest(Id)
+    responseStream := NEX.NewOutputStream()
+    responseStream.Struct(FriendInfo)
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_Wii_U_DeleteFriendRequest_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Id := stream.UInt64LE()
+    rmcResult := Friends_Wii_U_DeleteFriendRequest(Id)
+    responseStream := NEX.NewOutputStream()
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_Wii_U_DenyFriendRequest_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Id := stream.UInt64LE()
+    rmcResult, BlacklistedPrincipal := Friends_Wii_U_DenyFriendRequest(Id)
+    responseStream := NEX.NewOutputStream()
+    responseStream.Struct(BlacklistedPrincipal)
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_Wii_U_MarkFriendRequestsAsReceived_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    FriendRequests := stream.List("Uint64", func (innerStream *NEX.InputStream) uint64 { return innerStream.UInt64LE() }).([]uint64)
+    rmcResult := Friends_Wii_U_MarkFriendRequestsAsReceived(FriendRequests)
+    responseStream := NEX.NewOutputStream()
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_Wii_U_AddBlackList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    BlacklistedPrincipal := stream.Struct("BlacklistedPrincipal").(NEX.BlacklistedPrincipal)
+    rmcResult, BlacklistedPrincipal := Friends_Wii_U_AddBlackList(BlacklistedPrincipal)
+    responseStream := NEX.NewOutputStream()
+    responseStream.Struct(BlacklistedPrincipal)
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_Wii_U_RemoveBlackList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Pid := NEX.PID(stream.UInt32LE())
+    rmcResult := Friends_Wii_U_RemoveBlackList(Pid)
+    responseStream := NEX.NewOutputStream()
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_Wii_U_UpdatePresence_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    NintendoPresence := stream.Struct("NintendoPresenceV2").(NEX.NintendoPresenceV2)
+    rmcResult := Friends_Wii_U_UpdatePresence(NintendoPresence)
+    responseStream := NEX.NewOutputStream()
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_Wii_U_UpdateMii_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Mii := stream.Struct("MiiV2").(NEX.MiiV2)
+    rmcResult, Unknown := Friends_Wii_U_UpdateMii(Mii)
+    responseStream := NEX.NewOutputStream()
+    responseStream.UInt64LE(uint64(Unknown))
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_Wii_U_UpdateComment_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    StatusMessage := stream.Struct("Comment").(NEX.Comment)
+    rmcResult, Unknown := Friends_Wii_U_UpdateComment(StatusMessage)
+    responseStream := NEX.NewOutputStream()
+    responseStream.UInt64LE(uint64(Unknown))
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_Wii_U_UpdatePreference_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    PrincipalPreferenc := stream.Struct("PrincipalPreference").(NEX.PrincipalPreference)
+    rmcResult := Friends_Wii_U_UpdatePreference(PrincipalPreferenc)
+    responseStream := NEX.NewOutputStream()
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_Wii_U_GetBasicInfo_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Pids := stream.List("PID", func (innerStream *NEX.InputStream) NEX.PID { return NEX.PID(innerStream.UInt32LE()) }).([]NEX.PID)
+    rmcResult, Infos := Friends_Wii_U_GetBasicInfo(Pids)
+    responseStream := NEX.NewOutputStream()
+    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.PrincipalBasicInfo) { innerStream.Struct(data) }, Infos)
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_Wii_U_DeleteFriendFlags_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Unknown := stream.List("PersistentNotification", func (innerStream *NEX.InputStream) NEX.PersistentNotification { return innerStream.Struct("PersistentNotification").(NEX.PersistentNotification) }).([]NEX.PersistentNotification)
+    rmcResult := Friends_Wii_U_DeleteFriendFlags(Unknown)
+    responseStream := NEX.NewOutputStream()
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_Wii_U_CheckSettingStatus_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    rmcResult, Unknown := Friends_Wii_U_CheckSettingStatus()
+    responseStream := NEX.NewOutputStream()
+    responseStream.UInt8(Unknown)
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Friends_Wii_U_GetRequestBlockSettings_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Unknown := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    rmcResult, Settings := Friends_Wii_U_GetRequestBlockSettings(Unknown)
+    responseStream := NEX.NewOutputStream()
+    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.PrincipalRequestBlockSetting) { innerStream.Struct(data) }, Settings)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2734,6 +2692,94 @@ func Match_Making_MigrateGatheringOwnership_Wrapper(req NEX.RMCRequest) (ret NEX
     LstPotentialNewOwnersID := stream.List("PID", func (innerStream *NEX.InputStream) NEX.PID { return NEX.PID(innerStream.UInt32LE()) }).([]NEX.PID)
     ParticipantsOnly := stream.Bool()
     rmcResult := Match_Making_MigrateGatheringOwnership(Gid,LstPotentialNewOwnersID,ParticipantsOnly)
+    responseStream := NEX.NewOutputStream()
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Match_Making_Ext_EndParticipation_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    IdGathering := stream.UInt32LE()
+    StrMessage := string(stream.String())
+    rmcResult, returnValue := Match_Making_Ext_EndParticipation(IdGathering,StrMessage)
+    responseStream := NEX.NewOutputStream()
+    responseStream.Bool(returnValue)
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Match_Making_Ext_GetParticipants_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    IdGathering := stream.UInt32LE()
+    BOnlyActive := stream.Bool()
+    rmcResult, LstParticipants := Match_Making_Ext_GetParticipants(IdGathering,BOnlyActive)
+    responseStream := NEX.NewOutputStream()
+    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.PID) { innerStream.UInt32LE(uint32(data)) }, LstParticipants)
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Match_Making_Ext_GetDetailedParticipants_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    IdGathering := stream.UInt32LE()
+    BOnlyActiv := stream.Bool()
+    rmcResult, LstParticipants := Match_Making_Ext_GetDetailedParticipants(IdGathering,BOnlyActiv)
+    responseStream := NEX.NewOutputStream()
+    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.ParticipantDetails) { innerStream.Struct(data) }, LstParticipants)
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Match_Making_Ext_GetParticipantsURLs_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    LstGatherings := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    rmcResult, LstGatheringURLs := Match_Making_Ext_GetParticipantsURLs(LstGatherings)
+    responseStream := NEX.NewOutputStream()
+    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.GatheringURLs) { innerStream.Struct(data) }, LstGatheringURLs)
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Match_Making_Ext_GetGatheringRelations_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    Id := stream.UInt32LE()
+    Descr := string(stream.String())
+    rmcResult, returnValue := Match_Making_Ext_GetGatheringRelations(Id,Descr)
+    responseStream := NEX.NewOutputStream()
+    responseStream.String(string(returnValue))
+    ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
+    if rmcResult == 0x00010001  {
+    	ret.SetSuccess(req.MethodID, responseStream.Bytes())
+    } else {
+    	ret.SetError(rmcResult)
+    }
+    return
+}
+func Match_Making_Ext_DeleteFromDeletions_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
+    stream := NEX.NewInputStream(req.Parameters)
+    LstDeletions := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    Pid := NEX.PID(stream.UInt32LE())
+    rmcResult := Match_Making_Ext_DeleteFromDeletions(LstDeletions,Pid)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
@@ -4243,11 +4289,11 @@ func Simple_Authentication_LoginWithTokenEx_Wrapper(req NEX.RMCRequest) (ret NEX
     StrToken := string(stream.String())
     PConnectionData := stream.Struct("RVConnectionData").(NEX.RVConnectionData)
     OAnyData := stream.Struct("Data").(NEX.Data)
-    rmcResult, returnValue,PidPrincipal,PConnectionDataOut,StrReturnMsg := Simple_Authentication_LoginWithTokenEx(StrToken,PConnectionData,OAnyData)
+    rmcResult, returnValue,PidPrincipal,PConnectionData,StrReturnMsg := Simple_Authentication_LoginWithTokenEx(StrToken,PConnectionData,OAnyData)
     responseStream := NEX.NewOutputStream()
     responseStream.UInt32LE(uint32(returnValue))
     responseStream.UInt32LE(PidPrincipal)
-    responseStream.Struct(PConnectionDataOut)
+    responseStream.Struct(PConnectionData)
     responseStream.String(string(StrReturnMsg))
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {

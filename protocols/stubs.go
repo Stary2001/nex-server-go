@@ -127,15 +127,15 @@ func Account_Management_DisconnectAllPrincipals() (rmcResult uint32, returnValue
 /*func Authentication_Login(StrUserName string) (rmcResult uint32, returnValue NEX.Result, PidPrincipal NEX.PID, PbufResponse NEX.Buffer, PConnectionData NEX.RVConnectionData, StrReturnMsg string) {
     rmcResult = 0x80010002
     return
-}*/
-func Authentication_LoginEx(StrUserName string, OExtraData NEX.Data) (rmcResult uint32, ) {
+}
+func Authentication_LoginEx(StrUserName string, OExtraData NEX.Data) (rmcResult uint32, returnValue NEX.Result, PidPrincipal NEX.PID, PbufResponse NEX.Buffer, PConnectionData NEX.RVConnectionData, StrReturnMsg string, PSourceKey string) {
     rmcResult = 0x80010002
     return
 }
-/*func Authentication_RequestTicket(IdSource NEX.PID, IdTarget NEX.PID) (rmcResult uint32, returnValue NEX.Result, BufResponse NEX.Buffer) {
+func Authentication_RequestTicket(IdSource NEX.PID, IdTarget NEX.PID) (rmcResult uint32, returnValue NEX.Result, BufResponse NEX.Buffer) {
     rmcResult = 0x80010002
     return
-}*/
+}
 func Authentication_GetPID(StrUserName string) (rmcResult uint32, returnValue NEX.PID) {
     rmcResult = 0x80010002
     return
@@ -147,7 +147,7 @@ func Authentication_GetName(Id NEX.PID) (rmcResult uint32, returnValue string) {
 func Authentication_LoginWithContext(LoginData NEX.Data) (rmcResult uint32, returnValue NEX.Result, PidPrincipal NEX.PID, PbufResponse NEX.Buffer, PConnectionData NEX.RVConnectionData) {
     rmcResult = 0x80010002
     return
-}
+}*/
 func Data_Store_PrepareGetObjectV1(Param NEX.DataStorePrepareGetParamV1) (rmcResult uint32, PReqGetInfo NEX.DataStoreReqGetInfoV1) {
     rmcResult = 0x80010002
     return
@@ -360,146 +360,6 @@ func Data_Store_FetchMyInfos(Patam NEX.DataStoreFetchMyInfosParam) (rmcResult ui
     rmcResult = 0x80010002
     return
 }
-func Friends_3DS_UpdateProfile(ProfileData NEX.MyProfile) (rmcResult uint32, ) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_3DS_UpdateMii(Mii NEX.Mii) (rmcResult uint32, ) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_3DS_UpdateMiiList(MiiList NEX.MiiList) (rmcResult uint32, ) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_3DS_UpdatePlayedGames(PlayedGames []NEX.PlayedGame) (rmcResult uint32, ) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_3DS_UpdatePreference(Unknown bool, Unknown2 bool, Unknown3 bool) (rmcResult uint32, ) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_3DS_GetFriendRelationships(Unknown []uint32) (rmcResult uint32, FriendRelationships []NEX.FriendRelationship) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_3DS_AddFriendByPrincipalID(Unknown uint64, PrincipalId uint32) (rmcResult uint32, FriendRelationship NEX.FriendRelationship) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_3DS_GetAllFriends() (rmcResult uint32, FriendRelationships []NEX.FriendRelationship) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_3DS_SyncFriend(Unknown uint64, Unknown2 []uint32, Unknown3 []uint64) (rmcResult uint32, FriendList []NEX.FriendRelationship) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_3DS_UpdatePresence(PresenceInfo NEX.NintendoPresence, Unknown bool) (rmcResult uint32, ) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_3DS_UpdateFavoriteGameKey(GameKey NEX.GameKey) (rmcResult uint32, ) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_3DS_UpdateComment(Comment string) (rmcResult uint32, ) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_3DS_GetFriendPresence(Unknown []uint32) (rmcResult uint32, FriendPresenceList []NEX.FriendPresence) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_3DS_GetFriendPicture(Unknown []uint32) (rmcResult uint32, FriendPictures []NEX.FriendPicture) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_3DS_GetFriendPersistentInfo(Unknown []uint32) (rmcResult uint32, PersistentInfo []NEX.FriendPersistentInfo) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_Wii_U_GetAllInformation(NNAInfo NEX.NNAInfo, NintendoPresence NEX.NintendoPresenceV2, Birthday NEX.DateTime) (rmcResult uint32, PrincipalPreference NEX.PrincipalPreference, StatusMessage NEX.Comment, FriendList []NEX.FriendInfo, SentFriendRequests []NEX.FriendRequest, ReceivedFriendRequests []NEX.FriendRequest, Blacklist []NEX.BlacklistedPrincipal, Unknown bool, Notifications []NEX.PersistentNotification, Unknown2 bool) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_Wii_U_AddFriend(Pid NEX.PID) (rmcResult uint32, FriendRequest NEX.FriendRequest, FriendInfo NEX.FriendInfo) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_Wii_U_AddFriendByName(Name string) (rmcResult uint32, FriendRequest NEX.FriendRequest, FriendInfo NEX.FriendInfo) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_Wii_U_RemoveFriend(Pid NEX.PID) (rmcResult uint32, ) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_Wii_U_AddFriendRequest(Unknown uint32, Unknown2 uint8, Unknown3 string, Unknown4 uint8, Unknown5 string, GameKey NEX.GameKey, Unknown6 NEX.DateTime) (rmcResult uint32, FriendRequest NEX.FriendRequest, FriendInfo NEX.FriendInfo) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_Wii_U_CancelFriendRequest(Id uint64) (rmcResult uint32, ) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_Wii_U_AcceptFriendRequest(Id uint64) (rmcResult uint32, FriendInfo NEX.FriendInfo) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_Wii_U_DeleteFriendRequest(Id uint64) (rmcResult uint32, ) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_Wii_U_DenyFriendRequest(Id uint64) (rmcResult uint32, BlacklistedPrincipal NEX.BlacklistedPrincipal) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_Wii_U_MarkFriendRequestsAsReceived(FriendRequests []uint64) (rmcResult uint32, ) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_Wii_U_AddBlackList(BlacklistedPrincipal NEX.BlacklistedPrincipal) (rmcResult uint32, BlacklistedPrincipalOut NEX.BlacklistedPrincipal) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_Wii_U_RemoveBlackList(Pid NEX.PID) (rmcResult uint32, ) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_Wii_U_UpdatePresence(NintendoPresence NEX.NintendoPresenceV2) (rmcResult uint32, ) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_Wii_U_UpdateMii(Mii NEX.MiiV2) (rmcResult uint32, Unknown NEX.DateTime) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_Wii_U_UpdateComment(StatusMessage NEX.Comment) (rmcResult uint32, Unknown NEX.DateTime) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_Wii_U_UpdatePreference(PrincipalPreferenc NEX.PrincipalPreference) (rmcResult uint32, ) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_Wii_U_GetBasicInfo(Pids []NEX.PID) (rmcResult uint32, Infos []NEX.PrincipalBasicInfo) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_Wii_U_DeleteFriendFlags(Unknown []NEX.PersistentNotification) (rmcResult uint32, ) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_Wii_U_CheckSettingStatus() (rmcResult uint32, Unknown uint8) {
-    rmcResult = 0x80010002
-    return
-}
-func Friends_Wii_U_GetRequestBlockSettings(Unknown []uint32) (rmcResult uint32, Settings []NEX.PrincipalRequestBlockSetting) {
-    rmcResult = 0x80010002
-    return
-}
 func Friends_AddFriend(UiPlayer uint32, UiDetails uint32, StrMessage string) (rmcResult uint32, returnValue bool) {
     rmcResult = 0x80010002
     return
@@ -552,27 +412,155 @@ func Friends_GetRelationships(ResultRange NEX.ResultRange) (rmcResult uint32, Ui
     rmcResult = 0x80010002
     return
 }
-func Match_Making_Ext_EndParticipation(IdGathering uint32, StrMessage string) (rmcResult uint32, returnValue bool) {
+/*func Friends_3DS_UpdateProfile(ProfileData NEX.MyProfile) (rmcResult uint32, ) {
     rmcResult = 0x80010002
     return
 }
-func Match_Making_Ext_GetParticipants(IdGathering uint32, BOnlyActive bool) (rmcResult uint32, LstParticipants []NEX.PID) {
+func Friends_3DS_UpdateMii(Mii NEX.Mii) (rmcResult uint32, ) {
     rmcResult = 0x80010002
     return
 }
-func Match_Making_Ext_GetDetailedParticipants(IdGathering uint32, BOnlyActiv bool) (rmcResult uint32, LstParticipants []NEX.ParticipantDetails) {
+func Friends_3DS_UpdateMiiList(MiiList NEX.MiiList) (rmcResult uint32, ) {
     rmcResult = 0x80010002
     return
 }
-func Match_Making_Ext_GetParticipantsURLs(LstGatherings []uint32) (rmcResult uint32, LstGatheringURLs []NEX.GatheringURLs) {
+func Friends_3DS_UpdatePlayedGames(PlayedGames []NEX.PlayedGame) (rmcResult uint32, ) {
     rmcResult = 0x80010002
     return
 }
-func Match_Making_Ext_GetGatheringRelations(Id uint32, Descr string) (rmcResult uint32, returnValue string) {
+func Friends_3DS_UpdatePreference(Unknown bool, Unknown2 bool, Unknown3 bool) (rmcResult uint32, ) {
     rmcResult = 0x80010002
     return
 }
-func Match_Making_Ext_DeleteFromDeletions(LstDeletions []uint32, Pid NEX.PID) (rmcResult uint32, ) {
+func Friends_3DS_GetFriendMii(Friends []NEX.FriendMiiRequest) (rmcResult uint32, ) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_3DS_GetFriendMiiList(Friends []NEX.FriendMiiRequest) (rmcResult uint32, MiiLists []NEX.FriendMiiList) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_3DS_GetFriendRelationships(Unknown []uint32) (rmcResult uint32, FriendRelationships []NEX.FriendRelationship) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_3DS_AddFriendByPrincipalID(Unknown uint64, PrincipalId uint32) (rmcResult uint32, FriendRelationship NEX.FriendRelationship) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_3DS_GetAllFriends() (rmcResult uint32, FriendRelationships []NEX.FriendRelationship) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_3DS_SyncFriend(Unknown uint64, Unknown2 []uint32, Unknown3 []uint64) (rmcResult uint32, FriendList []NEX.FriendRelationship) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_3DS_UpdatePresence(PresenceInfo NEX.NintendoPresence, Unknown bool) (rmcResult uint32, ) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_3DS_UpdateFavoriteGameKey(GameKey NEX.GameKey) (rmcResult uint32, ) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_3DS_UpdateComment(Comment string) (rmcResult uint32, ) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_3DS_GetFriendPresence(Unknown []uint32) (rmcResult uint32, FriendPresenceList []NEX.FriendPresence) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_3DS_GetFriendPicture(Unknown []uint32) (rmcResult uint32, FriendPictures []NEX.FriendPicture) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_3DS_GetFriendPersistentInfo(Unknown []uint32) (rmcResult uint32, PersistentInfo []NEX.FriendPersistentInfo) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_3DS_SendInvitation(Unknown []uint32) (rmcResult uint32, ) {
+    rmcResult = 0x80010002
+    return
+}*/
+func Friends_Wii_U_GetAllInformation(NNAInfo NEX.NNAInfo, NintendoPresence NEX.NintendoPresenceV2, Birthday NEX.DateTime) (rmcResult uint32, PrincipalPreference NEX.PrincipalPreference, StatusMessage NEX.Comment, FriendList []NEX.FriendInfo, SentFriendRequests []NEX.FriendRequest, ReceivedFriendRequests []NEX.FriendRequest, Blacklist []NEX.BlacklistedPrincipal, Unknown bool, Notifications []NEX.PersistentNotification, Unknown2 bool) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_Wii_U_AddFriend(Pid NEX.PID) (rmcResult uint32, FriendRequest NEX.FriendRequest, FriendInfo NEX.FriendInfo) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_Wii_U_AddFriendByName(Name string) (rmcResult uint32, FriendRequest NEX.FriendRequest, FriendInfo NEX.FriendInfo) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_Wii_U_RemoveFriend(Pid NEX.PID) (rmcResult uint32, ) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_Wii_U_AddFriendRequest(Unknown uint32, Unknown2 uint8, Unknown3 string, Unknown4 uint8, Unknown5 string, GameKey NEX.GameKey, Unknown6 NEX.DateTime) (rmcResult uint32, FriendRequest NEX.FriendRequest, FriendInfo NEX.FriendInfo) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_Wii_U_CancelFriendRequest(Id uint64) (rmcResult uint32, ) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_Wii_U_AcceptFriendRequest(Id uint64) (rmcResult uint32, FriendInfo NEX.FriendInfo) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_Wii_U_DeleteFriendRequest(Id uint64) (rmcResult uint32, ) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_Wii_U_DenyFriendRequest(Id uint64) (rmcResult uint32, BlacklistedPrincipal NEX.BlacklistedPrincipal) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_Wii_U_MarkFriendRequestsAsReceived(FriendRequests []uint64) (rmcResult uint32, ) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_Wii_U_AddBlackList(BlacklistedPrincipalIn NEX.BlacklistedPrincipal) (rmcResult uint32, BlacklistedPrincipal NEX.BlacklistedPrincipal) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_Wii_U_RemoveBlackList(Pid NEX.PID) (rmcResult uint32, ) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_Wii_U_UpdatePresence(NintendoPresence NEX.NintendoPresenceV2) (rmcResult uint32, ) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_Wii_U_UpdateMii(Mii NEX.MiiV2) (rmcResult uint32, Unknown NEX.DateTime) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_Wii_U_UpdateComment(StatusMessage NEX.Comment) (rmcResult uint32, Unknown NEX.DateTime) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_Wii_U_UpdatePreference(PrincipalPreferenc NEX.PrincipalPreference) (rmcResult uint32, ) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_Wii_U_GetBasicInfo(Pids []NEX.PID) (rmcResult uint32, Infos []NEX.PrincipalBasicInfo) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_Wii_U_DeleteFriendFlags(Unknown []NEX.PersistentNotification) (rmcResult uint32, ) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_Wii_U_CheckSettingStatus() (rmcResult uint32, Unknown uint8) {
+    rmcResult = 0x80010002
+    return
+}
+func Friends_Wii_U_GetRequestBlockSettings(Unknown []uint32) (rmcResult uint32, Settings []NEX.PrincipalRequestBlockSetting) {
     rmcResult = 0x80010002
     return
 }
@@ -749,6 +737,30 @@ func Match_Making_UpdateGatheringOwnership(Gid uint32, ParticipantsOnly bool) (r
     return
 }
 func Match_Making_MigrateGatheringOwnership(Gid uint32, LstPotentialNewOwnersID []NEX.PID, ParticipantsOnly bool) (rmcResult uint32, ) {
+    rmcResult = 0x80010002
+    return
+}
+func Match_Making_Ext_EndParticipation(IdGathering uint32, StrMessage string) (rmcResult uint32, returnValue bool) {
+    rmcResult = 0x80010002
+    return
+}
+func Match_Making_Ext_GetParticipants(IdGathering uint32, BOnlyActive bool) (rmcResult uint32, LstParticipants []NEX.PID) {
+    rmcResult = 0x80010002
+    return
+}
+func Match_Making_Ext_GetDetailedParticipants(IdGathering uint32, BOnlyActiv bool) (rmcResult uint32, LstParticipants []NEX.ParticipantDetails) {
+    rmcResult = 0x80010002
+    return
+}
+func Match_Making_Ext_GetParticipantsURLs(LstGatherings []uint32) (rmcResult uint32, LstGatheringURLs []NEX.GatheringURLs) {
+    rmcResult = 0x80010002
+    return
+}
+func Match_Making_Ext_GetGatheringRelations(Id uint32, Descr string) (rmcResult uint32, returnValue string) {
+    rmcResult = 0x80010002
+    return
+}
+func Match_Making_Ext_DeleteFromDeletions(LstDeletions []uint32, Pid NEX.PID) (rmcResult uint32, ) {
     rmcResult = 0x80010002
     return
 }
@@ -1164,7 +1176,7 @@ func Secure_Connection_SendReport(ReportId uint32, ReportData NEX.QBuffer) (rmcR
     rmcResult = 0x80010002
     return
 }*/
-func Simple_Authentication_LoginWithTokenEx(StrToken string, PConnectionData NEX.RVConnectionData, OAnyData NEX.Data) (rmcResult uint32, returnValue NEX.Result, PidPrincipal uint32, PConnectionDataOut NEX.RVConnectionData, StrReturnMsg string) {
+func Simple_Authentication_LoginWithTokenEx(StrToken string, PConnectionDataIn NEX.RVConnectionData, OAnyData NEX.Data) (rmcResult uint32, returnValue NEX.Result, PidPrincipal uint32, PConnectionData NEX.RVConnectionData, StrReturnMsg string) {
     rmcResult = 0x80010002
     return
 }

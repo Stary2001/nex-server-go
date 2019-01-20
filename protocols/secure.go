@@ -24,7 +24,6 @@ func Secure_Connection_RegisterEx(VecMyURLs []NEX.StationURL, HCustomData NEX.Da
     returnValue = 0x00010001
     PidConnectionID = 0
     UrlPublic = VecMyURLs[0]
-    //rmcResult = 0x80010002
     fmt.Println(VecMyURLs)
     return
 }
