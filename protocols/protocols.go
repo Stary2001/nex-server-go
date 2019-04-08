@@ -15,7 +15,9 @@ func RegisterProtocols() {
 	Protocols = make(map[uint8]NEXProtocol)
 	Protocols[0xa] = NEXProtocol { 0xa, make(map[uint32]NEXMethod) } // Authentication
 	Protocols[0xb] = NEXProtocol { 0xb, make(map[uint32]NEXMethod) } // Secure Connection
+	Protocols[0x19] = NEXProtocol { 0x19, make(map[uint32]NEXMethod) } // Account Management
 	Protocols[0x65] = NEXProtocol { 0x65, make(map[uint32]NEXMethod) } // Friends (3DS)
+	Protocols[0x66] = NEXProtocol { 0x66, make(map[uint32]NEXMethod) } // Friends (Wii U)
 
 	Protocols[0xa].Methods[1] = Authentication_Login_Wrapper
 	Protocols[0xa].Methods[2] = Authentication_LoginEx_Wrapper
@@ -31,6 +33,8 @@ func RegisterProtocols() {
 	Protocols[0xb].Methods[6] = Secure_Connection_UpdateURLs_Wrapper
 	Protocols[0xb].Methods[7] = Secure_Connection_ReplaceURL_Wrapper
 	Protocols[0xb].Methods[8] = Secure_Connection_SendReport_Wrapper
+
+	Protocols[0x19].Methods[0x1b] = Account_Management_NintendoCreateAccount_Wrapper
 
 	Protocols[0x65].Methods[1] = Friends_3DS_UpdateProfile_Wrapper
 	Protocols[0x65].Methods[2] = Friends_3DS_UpdateMii_Wrapper
@@ -58,6 +62,27 @@ func RegisterProtocols() {
 	Protocols[0x65].Methods[24] = Friends_3DS_GetFriendPicture_Wrapper
 	Protocols[0x65].Methods[25] = Friends_3DS_GetFriendPersistentInfo_Wrapper
 	Protocols[0x65].Methods[26] = Friends_3DS_SendInvitation_Wrapper
+
+	Protocols[0x66].Methods[1] = Friends_Wii_U_GetAllInformation_Wrapper
+	Protocols[0x66].Methods[2] = Friends_Wii_U_AddFriend_Wrapper
+	Protocols[0x66].Methods[3] = Friends_Wii_U_AddFriendByName_Wrapper
+	Protocols[0x66].Methods[4] = Friends_Wii_U_RemoveFriend_Wrapper
+	Protocols[0x66].Methods[5] = Friends_Wii_U_AddFriendRequest_Wrapper
+	Protocols[0x66].Methods[6] = Friends_Wii_U_CancelFriendRequest_Wrapper
+	Protocols[0x66].Methods[7] = Friends_Wii_U_AcceptFriendRequest_Wrapper
+	Protocols[0x66].Methods[8] = Friends_Wii_U_DeleteFriendRequest_Wrapper
+	Protocols[0x66].Methods[9] = Friends_Wii_U_DenyFriendRequest_Wrapper
+	Protocols[0x66].Methods[10] = Friends_Wii_U_MarkFriendRequestsAsReceived_Wrapper
+	Protocols[0x66].Methods[11] = Friends_Wii_U_AddBlackList_Wrapper
+	Protocols[0x66].Methods[12] = Friends_Wii_U_RemoveBlackList_Wrapper
+	Protocols[0x66].Methods[13] = Friends_Wii_U_UpdatePresence_Wrapper
+	Protocols[0x66].Methods[14] = Friends_Wii_U_UpdateMii_Wrapper
+	Protocols[0x66].Methods[15] = Friends_Wii_U_UpdateComment_Wrapper
+	Protocols[0x66].Methods[16] = Friends_Wii_U_UpdatePreference_Wrapper
+	Protocols[0x66].Methods[17] = Friends_Wii_U_GetBasicInfo_Wrapper
+	Protocols[0x66].Methods[18] = Friends_Wii_U_DeleteFriendFlags_Wrapper
+	Protocols[0x66].Methods[19] = Friends_Wii_U_CheckSettingStatus_Wrapper
+	Protocols[0x66].Methods[20] = Friends_Wii_U_GetRequestBlockSettings_Wrapper
 }
 
 var Protocols map[uint8]NEXProtocol

@@ -13,7 +13,7 @@ func nexServerHandleData(Client *NEX.Client, Packet *NEX.Packet) {
 
 	ResponsePacket := NEX.NewPacket(Client)
 
-	ResponsePacket.SetVersion(0)
+	ResponsePacket.SetVersion(Packet.Version)
 	ResponsePacket.SetSource(Packet.Destination)
 	ResponsePacket.SetDestination(Packet.Source)
 	ResponsePacket.SetType(NEX.Types["Data"])
@@ -94,6 +94,16 @@ func main() {
 	settings.KerberosKeySize = 16
 	settings.AccessKey = "ridfebb9"
 
+	mk8_settings := NEX.NewSettings()
+	mk8_settings.PrudpVersion = 1
+	mk8_settings.KerberosKeySize = 32
+	mk8_settings.AccessKey = "25dbf96a"
+
+	chat_settings := NEX.NewSettings()
+	chat_settings.PrudpVersion = 1
+	chat_settings.KerberosKeySize = 32
+	chat_settings.AccessKey = "25dbf96a"
+
 	fmt.Println("starting memes")
 
 	AuthServer := createNexServer(settings)
@@ -101,9 +111,55 @@ func main() {
 		Client.Server.Acknowledge(Packet)
 	})
 
+	AuthServer.On("Disconnect",  func(Client *NEX.Client, Packet *NEX.Packet) {
+		Client.Server.Kick(*Client)
+	})
+
 	go AuthServer.Listen(":60900")
 
 	SecureServer := createNexServer(settings)
 	SecureServer.On("Connect", secureServerHandleConnect)
-	SecureServer.Listen(":60901")
+	SecureServer.On("Disconnect",  func(Client *NEX.Client, Packet *NEX.Packet) {
+		Client.Server.Kick(*Client)
+	})
+
+	go SecureServer.Listen(":60901")
+
+	MK8AuthServer := createNexServer(mk8_settings)
+	MK8AuthServer.On("Connect",  func(Client *NEX.Client, Packet *NEX.Packet) {
+		Client.Server.Acknowledge(Packet)
+	})
+
+	MK8AuthServer.On("Disconnect",  func(Client *NEX.Client, Packet *NEX.Packet) {
+		Client.Server.Kick(*Client)
+	})
+
+	go MK8AuthServer.Listen(":60800")
+
+	MK8SecureServer := createNexServer(mk8_settings)
+	MK8SecureServer.On("Connect", secureServerHandleConnect)
+	MK8SecureServer.On("Disconnect",  func(Client *NEX.Client, Packet *NEX.Packet) {
+		Client.Server.Kick(*Client)
+	})
+
+	go MK8SecureServer.Listen(":60801")
+
+	ChatAuthServer := createNexServer(chat_settings)
+	ChatAuthServer.On("Connect",  func(Client *NEX.Client, Packet *NEX.Packet) {
+		Client.Server.Acknowledge(Packet)
+	})
+
+	ChatAuthServer.On("Disconnect",  func(Client *NEX.Client, Packet *NEX.Packet) {
+		Client.Server.Kick(*Client)
+	})
+
+	go ChatAuthServer.Listen(":60700")
+
+	ChatSecureServer := createNexServer(chat_settings)
+	ChatSecureServer.On("Connect", secureServerHandleConnect)
+	ChatSecureServer.On("Disconnect",  func(Client *NEX.Client, Packet *NEX.Packet) {
+		Client.Server.Kick(*Client)
+	})
+
+	ChatSecureServer.Listen(":60701")
 }

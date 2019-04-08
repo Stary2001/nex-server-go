@@ -108,10 +108,10 @@ func Account_Management_CustomCreateAccount(StrPrincipalName string, StrKey stri
     rmcResult = 0x80010002
     return
 }
-func Account_Management_NintendoCreateAccount(StrPrincipalName string, StrKey string, UiGroups uint32, StrEmail string, OAuthData NEX.Data) (rmcResult uint32, Pid NEX.PID, PidHMAC string) {
+/*func Account_Management_NintendoCreateAccount(StrPrincipalName string, StrKey string, UiGroups uint32, StrEmail string, OAuthData NEX.Data) (rmcResult uint32, Pid NEX.PID, PidHMAC string) {
     rmcResult = 0x80010002
     return
-}
+}*/
 func Account_Management_LookupOrCreateAccount(StrPrincipalName string, StrKey string, UiGroups uint32, StrEmail string, OAuthData NEX.Data) (rmcResult uint32, Pid NEX.PID) {
     rmcResult = 0x80010002
     return
@@ -484,7 +484,7 @@ func Friends_3DS_SendInvitation(Unknown []uint32) (rmcResult uint32, ) {
     rmcResult = 0x80010002
     return
 }*/
-func Friends_Wii_U_GetAllInformation(NNAInfo NEX.NNAInfo, NintendoPresence NEX.NintendoPresenceV2, Birthday NEX.DateTime) (rmcResult uint32, PrincipalPreference NEX.PrincipalPreference, StatusMessage NEX.Comment, FriendList []NEX.FriendInfo, SentFriendRequests []NEX.FriendRequest, ReceivedFriendRequests []NEX.FriendRequest, Blacklist []NEX.BlacklistedPrincipal, Unknown bool, Notifications []NEX.PersistentNotification, Unknown2 bool) {
+/*func Friends_Wii_U_GetAllInformation(NNAInfo NEX.NNAInfo, NintendoPresence NEX.NintendoPresenceV2, Birthday NEX.DateTime) (rmcResult uint32, PrincipalPreference NEX.PrincipalPreference, StatusMessage NEX.Comment, FriendList []NEX.FriendInfo, SentFriendRequests []NEX.FriendRequest, ReceivedFriendRequests []NEX.FriendRequest, Blacklist []NEX.BlacklistedPrincipal, Unknown bool, Notifications []NEX.PersistentNotification, Unknown2 bool) {
     rmcResult = 0x80010002
     return
 }
@@ -563,7 +563,7 @@ func Friends_Wii_U_CheckSettingStatus() (rmcResult uint32, Unknown uint8) {
 func Friends_Wii_U_GetRequestBlockSettings(Unknown []uint32) (rmcResult uint32, Settings []NEX.PrincipalRequestBlockSetting) {
     rmcResult = 0x80010002
     return
-}
+}*/
 func Match_Making_RegisterGathering(AnyGathering NEX.Data) (rmcResult uint32, returnValue uint32) {
     rmcResult = 0x80010002
     return
