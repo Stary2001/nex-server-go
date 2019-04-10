@@ -260,11 +260,11 @@ func Data_Store_GetSpecificMeta(Param NEX.DataStoreGetSpecificMetaParam) (rmcRes
     rmcResult = 0x80010002
     return
 }
-func Data_Store_GetPersistenceInfo(OwnerId uint64, PersistenceSlotId uint16) (rmcResult uint32, PPersistenceInfo NEX.DataStorePersistenceInfo) {
+func Data_Store_GetPersistenceInfo(OwnerId NEX.PID, PersistenceSlotId uint16) (rmcResult uint32, PPersistenceInfo NEX.DataStorePersistenceInfo) {
     rmcResult = 0x80010002
     return
 }
-func Data_Store_GetPersistenceInfos(OwnerId uint64, PersistenceSlotIds []uint16) (rmcResult uint32, PPersistenceInfo []NEX.DataStorePersistenceInfo, PResults []NEX.Result) {
+func Data_Store_GetPersistenceInfos(OwnerId NEX.PID, PersistenceSlotIds []uint16) (rmcResult uint32, PPersistenceInfo []NEX.DataStorePersistenceInfo, PResults []NEX.Result) {
     rmcResult = 0x80010002
     return
 }
@@ -524,7 +524,7 @@ func Friends_Wii_U_MarkFriendRequestsAsReceived(FriendRequests []uint64) (rmcRes
     rmcResult = 0x80010002
     return
 }
-func Friends_Wii_U_AddBlackList(BlacklistedPrincipalIn NEX.BlacklistedPrincipal) (rmcResult uint32, BlacklistedPrincipal NEX.BlacklistedPrincipal) {
+func Friends_Wii_U_AddBlackList(BlacklistedPrincipal NEX.BlacklistedPrincipal) (rmcResult uint32, BlacklistedPrincipal NEX.BlacklistedPrincipal) {
     rmcResult = 0x80010002
     return
 }
@@ -1156,7 +1156,7 @@ func Secure_Connection_RequestUrls(CidTarget uint32, PidTarget uint32) (rmcResul
     rmcResult = 0x80010002
     return
 }
-func Secure_Connection_RegisterEx(VecMyURLs []NEX.StationURL, HCustomData NEX.Data) (rmcResult uint32, ) {
+func Secure_Connection_RegisterEx(VecMyURLs []NEX.StationURL, HCustomData NEX.Data) (rmcResult uint32, returnValue NEX.Result, PidConnectionID uint32, UrlPublic NEX.StationURL) {
     rmcResult = 0x80010002
     return
 }
@@ -1176,7 +1176,7 @@ func Secure_Connection_SendReport(ReportId uint32, ReportData NEX.QBuffer) (rmcR
     rmcResult = 0x80010002
     return
 }*/
-func Simple_Authentication_LoginWithTokenEx(StrToken string, PConnectionDataIn NEX.RVConnectionData, OAnyData NEX.Data) (rmcResult uint32, returnValue NEX.Result, PidPrincipal uint32, PConnectionData NEX.RVConnectionData, StrReturnMsg string) {
+func Simple_Authentication_LoginWithTokenEx(StrToken string, PConnectionData NEX.RVConnectionData, OAnyData NEX.Data) (rmcResult uint32, returnValue NEX.Result, PidPrincipal uint32, PConnectionDataOut NEX.RVConnectionData, StrReturnMsg string) {
     rmcResult = 0x80010002
     return
 }

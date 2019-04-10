@@ -45,11 +45,14 @@ class Struct(Type):
 			return "NEX." + self.name
 		return self.name
 
+	def safe_name(self):
+		return self.name
+
 	def save(self, stream, name):
-		return "{}.Struct({})".format(stream, name)
+		return "{}.Struct_{}({})".format(stream, self.safe_name(), name)
 
 	def load(self, stream):
-		return "{}.Struct(\"{}\").({}{})".format(stream, self.name, "NEX." if not in_nex else "", self.name)
+		return "{}.Struct_{}()".format(stream, self.safe_name())
 
 class IntType:
 	def __init__(self, bits, signed=False, actual_name=None):
@@ -60,9 +63,17 @@ class IntType:
 			self.actual_name = actual_name
 		else:
 			self.actual_name = None
+	
+	def safe_name(self):
+		if self.actual_name != None:
+			return self.actual_name
+		return "{}int{}".format("" if self.signed else "u", self.bits)
 
 	def type_name(self):
+		global in_nex
 		if self.actual_name != None:
+			if not in_nex:
+				return "NEX." + self.actual_name
 			return self.actual_name
 		return "{}int{}".format("" if self.signed else "u", self.bits)
 
@@ -75,7 +86,7 @@ class IntType:
 	def load(self, stream):
 		a = "{}.{}Int{}{}()".format(stream, "" if self.signed else "U", self.bits, "LE" if self.bits != 8 else "")
 		if self.actual_name:
-			a = self.actual_name + "(" + a + ")"
+			a = self.type_name() + "(" + a + ")"
 		return a
 
 class StringType:
@@ -83,6 +94,12 @@ class StringType:
 		self.actual_name = actual_name
 
 	def type_name(self):
+		global in_nex
+		if self.actual_name == "StationURL" and not in_nex:
+			return "NEX."+self.actual_name
+		return self.actual_name
+
+	def safe_name(self):
 		return self.actual_name
 
 	def save(self, stream, name):
@@ -93,28 +110,37 @@ class StringType:
 	def load(self, stream):
 		a = "{}.String()".format(stream)
 		if self.actual_name:
-			a = self.actual_name + "(" + a + ")"
+			a = self.type_name() + "(" + a + ")"
 		return a
 
 class BufferType:
 	def __init__(self, len_bits):
 		self.len = IntType(len_bits)
-		if self.len == 32:
-			self.name = "Buffer"
+		if len_bits == 32:
+			self.actual_name = "Buffer"
 		else:
-			self.name = "QBuffer"
+			self.actual_name = "QBuffer"
+
+	def safe_name(self):
+		return self.actual_name
 
 	def type_name(self):
-		return self.name
+		global in_nex
+		if not in_nex:
+			return "NEX."+self.actual_name
+		return self.actual_name
 
 	def save(self, stream, name):
-		return "{}.Buffer({})".format(stream, name)
+		return "{}.{}({})".format(stream, self.actual_name, name)
 
 	def load(self, stream):
-		return "{}.Buffer()".format(stream)
+		return "{}.{}()".format(stream, self.actual_name)
 
 class BoolType:
 	def type_name(self):
+		return "bool"
+
+	def safe_name(self):
 		return "bool"
 
 	def save(self, stream, name):
@@ -130,6 +156,9 @@ class FloatType:
 	def type_name(self):
 		return "float{}".format(self.bits)
 
+	def safe_name(self):
+		return self.type_name()
+
 	def save(self, stream, name):
 		return "{}.Float{}LE({})".format(stream, self.bits, name)
 
@@ -141,31 +170,40 @@ class ListType:
 		self.inner_type = inner_type
 		self.name = "List<{}>".format(inner_type.name)
 
+	def safe_name(self):
+		return "List_" + self.inner_type.safe_name()
+
 	def type_name(self):
 		return "[]{}".format(self.inner_type.type_name())
 
 	def save(self, stream, name):
-		return "{}.List(func (innerStream *{}OutputStream, data {}) {{ {} }}, {})".format(stream, "NEX." if not in_nex else "", self.inner_type.type_name(), self.inner_type.save("innerStream", "data"), name)
+		return "{}.{}({})".format(stream, self.safe_name(), name)
 
 	def load(self, stream):
-		return "{}.List(\"{}\", func (innerStream *{}InputStream) {} {{ return {} }}).([]{})".format(stream, self.inner_type.name, "NEX." if not in_nex else "", self.inner_type.type_name(), self.inner_type.load("innerStream"), self.inner_type.type_name())
+		return "{}.{}()".format(stream, self.safe_name())
 
 class MapType:
 	def __init__(self, key_type, value_type):
 		self.key_type = key_type
 		self.value_type = value_type
 
+	def safe_name(self):
+		return "Map_" + self.key_type.safe_name() + "_" + self.value_type.safe_name()
+
 	def type_name(self):
 		return "map[{}]{}".format(self.key_type.type_name(), self.value_type.type_name())
 
 	def save(self, stream, name):
-		return "{}.Map(func (innerStream *{}OutputStream, key {}, value {}) {{ {}; {} }}, {})".format(stream, "NEX." if not in_nex else "", self.key_type.type_name(), self.value_type.type_name(), self.key_type.save("innerStream", "key"), self.value_type.save("innerStream", "value"), name)
+		return "{}.{}({})".format(stream, self.safe_name(), name)
 
 	def load(self, stream):
-		return "{}.Map(\"{}\", func (innerStream *{}InputStream)({}, {}) {{ return {}, {} }}).(map[{}]{})".format(stream, "Map<{},{}>".format(self.key_type.name, self.value_type.name), "NEX." if not in_nex else "", self.key_type.type_name(), self.value_type.type_name(), self.key_type.load("innerStream"), self.value_type.load("innerStream"), self.key_type.type_name(), self.value_type.type_name())
+		return "{}.{}()".format(stream, self.safe_name())
 
 class VariantType:
 	def type_name(self):
+		return "Variant"
+
+	def safe_name(self):
 		return "Variant"
 
 	def save(self, stream, name):
@@ -243,9 +281,20 @@ class StubType(Type):
 	def __init__(self, name):
 		self.name = name
 
+	def safe_name(self):
+		return "memes"
+
 	def type_name(self):
 		print("Stubbed type!! {}".format(repr(self.name)))
 		return "memes"
+
+	def save(self, a, b):
+		print("stub save ", a, b)
+		return ""
+
+	def load(self, a):
+		print("stub load ", a)
+		return "nil"
 
 list_types = set()
 map_pairs = set()
@@ -254,7 +303,7 @@ def get_type(type_name):
 	if type_name.startswith('List<'):
 		if type_name[5:-1] == 'byte': # [hacks intensify]
 			list_types.add('Uint8')
-		elif type_name[5:9] == 'Data':
+		elif type_name[5:10] == 'Data<' or type_name[5:10] == 'Data>':
 			list_types.add('Data') # memes?
 		else:
 			list_types.add(type_name[5:-1])
@@ -550,8 +599,6 @@ for name in a:
 		with open("NintendoClients.wiki/"+name) as f:
 			methods_pass(f)
 
-# TODO: hack
-types['qBuffer'].name = 'QBuffer'
 in_nex = True
 out_file = open(sys.argv[1]+"/structs.go", 'w')
 out_file.write("// This file is autogenerated.\n// I apologise in advance.\n")
@@ -580,12 +627,6 @@ for s in sorted(structs):
 	out_file.write(struct)
 
 in_nex = False
-types['Result'].actual_name = 'NEX.Result'
-types['PID'].actual_name = 'NEX.PID'
-types['DateTime'].actual_name = 'NEX.DateTime'
-types['StationURL'].actual_name = 'NEX.StationURL'
-types['Buffer'].name = 'NEX.Buffer'
-types['qBuffer'].name = 'NEX.QBuffer'
 
 thunks_file = open(sys.argv[1]+"/thunks.go", 'w')
 thunks_file.write("package protocols\n")
@@ -646,7 +687,7 @@ stubs_file.write("""import (
 	NEX "github.com/Stary2001/nex-go"
 	)\n""")
 
-blacklist = ["Authentication (0x0A)", "Secure Connection (0x0B)", "Friends 3DS (0x65)"] # Update as new protocols are added.
+blacklist = ["Authentication (0x0A)", "Secure Connection (0x0B)", "Friends 3DS (0x65)", "Friends Wii U (0x66)"] # Update as new protocols are added.
 
 for p in sorted(proto_info):
 	if p in blacklist:
@@ -667,12 +708,6 @@ for p in sorted(proto_info):
 stubs_file.close()
 
 in_nex = True
-types['Result'].actual_name = 'Result'
-types['PID'].actual_name = 'PID'
-types['DateTime'].actual_name = 'DateTime'
-types['StationURL'].actual_name = 'StationURL'
-types['Buffer'].name = 'Buffer'
-types['qBuffer'].name = 'QBuffer'
 
 nex_file = open(sys.argv[1]+"/nex_stream_mixin.go", 'w')
 nex_file.write("// This file is autogenerated.\n// I apologise in advance.\n")
@@ -690,12 +725,11 @@ struct_out_method = """func (stream *OutputStream) Struct(out interface{}) {
 memes = ""
 
 for s in sorted(structs):
-	method_in_text = "func (stream *InputStream) Struct{}() (in {}) {{\n".format(s,s)
-	method_out_text = "func (stream *OutputStream) Struct{}(out {}) {{\n".format(s,s)
+	method_in_text = "func (stream *InputStream) Struct_{}() (in {}) {{\n".format(s,s)
+	method_out_text = "func (stream *OutputStream) Struct_{}(out {}) {{\n".format(s,s)
 
 	s_obj = types[s]
 	for field in s_obj.fields:
-		#print(field)
 		method_in_text += "    in.{} = {}\n".format(field[0], get_type(field[1]).load("stream"))
 		method_out_text += "    " + get_type(field[1]).save("stream", "out.{}".format(field[0])) + "\n"
 
@@ -706,8 +740,8 @@ for s in sorted(structs):
 	memes += method_in_text
 	memes += method_out_text
 
-	struct_in_method += "    case \"{}\":\n        return stream.Struct{}()\n".format(s,s)
-	struct_out_method += "    case {}:\n        stream.Struct{}(out.({}))\n".format(s,s,s)
+	struct_in_method += "    case \"{}\":\n        return stream.Struct_{}()\n".format(s,s)
+	struct_out_method += "    case {}:\n        stream.Struct_{}(out.({}))\n".format(s,s,s)
 
 struct_in_method += """
 	default:
@@ -725,114 +759,65 @@ struct_out_method += """
 nex_file.write(struct_in_method)
 nex_file.write(struct_out_method)
 
-list_in_method = """func (stream *InputStream) List(typeName string, cb interface{}) interface{} {
-switch typeName {\n"""
-list_out_method = """func (stream *OutputStream) List(cb interface{}, list interface{}) {
-switch list.(type) {\n"""
 
 for t in sorted(list_types):
-	type_name_safe = t.replace("<", "_").replace(">", "_")
+	type_name_safe = get_type(t).safe_name()
 	real_type_name = get_type(t).type_name()
-	method_in_text = "func (stream *InputStream) List{}(cb func(*InputStream){}) []{} {{".format(type_name_safe, real_type_name,real_type_name)
-	method_out_text = "func (stream *OutputStream) List{}(cb func(*OutputStream,{})(), out []{}) () {{\n".format(type_name_safe, real_type_name, real_type_name)
+	method_in_text = "func (stream *InputStream) List_{}() []{} {{".format(type_name_safe, real_type_name)
+	method_out_text = "func (stream *OutputStream) List_{}(out []{}) () {{\n".format(type_name_safe, real_type_name)
 
 	method_in_text += """
     list_len := int(stream.UInt32LE())
     list := make([]{}, list_len)
     for i := 0; i < list_len; i++ {{
-		list[i] = cb(stream)
+		list[i] = {}
 	}}
 	return list
-}}\n""".format(real_type_name)
+}}\n""".format(real_type_name, get_type(t).load("stream"))
 
 	method_out_text += """
 	length := len(out)
     stream.UInt32LE(uint32(length))
     for _, item := range out {{
-		cb(stream, item)
+		{}
 	}}
 	return
-}}\n""".format(real_type_name)
-	
-	list_in_method += "    case \"{}\":\n        return stream.List{}(cb.(func(*InputStream){}))\n".format(t, type_name_safe, real_type_name, real_type_name, real_type_name)
-	list_out_method += "    case []{}:\n        stream.List{}(cb.(func(*OutputStream,{})), list.([]{})) // {}\n".format(real_type_name, type_name_safe, real_type_name, real_type_name, t)
+}}\n""".format(get_type(t).save("stream", "item"))
 
 	memes += method_in_text
 	memes += method_out_text
 
-list_in_method += """
-	default:
-		fmt.Printf("list: invalid type", typeName)
-		return nil
-	}
-}
-"""
-list_out_method += """
-	default:
-	fmt.Printf("list: invalid type", reflect.TypeOf(list))
-	}
-	return
-}
-"""
-
-nex_file.write(list_in_method)
-nex_file.write(list_out_method)
-
-map_in_method = """func (stream *InputStream) Map(typeName string, cb interface{}) interface{} {
-switch typeName {\n"""
-map_out_method = """func (stream *OutputStream) Map(cb interface{}, m interface{}) {
-switch m.(type) {\n"""
-
 for m in sorted(map_pairs):
-	type_name_safe = m[0].replace("<", "_").replace(">", "_").replace(",","") + "_" + m[1].replace("<", "_").replace(">", "_").replace(",","")
+	type_name_safe = get_type(m[0]).safe_name() + "_" + get_type(m[1]).safe_name()
 	real_key_type_name = get_type(m[0]).type_name()
 	real_value_type_name = get_type(m[1]).type_name()
 	kv = (real_key_type_name, real_value_type_name)
 
-	method_in_text = "func (stream *InputStream) Map{}(cb func(*InputStream)({},{})) map[{}]{} {{".format(type_name_safe, *kv, *kv)
-	method_out_text = "func (stream *OutputStream) Map{}(cb func(*OutputStream,{},{})(), out map[{}]{}) () {{\n".format(type_name_safe, *kv, *kv)
+	method_in_text = "func (stream *InputStream) Map_{}() map[{}]{} {{".format(type_name_safe, *kv)
+	method_out_text = "func (stream *OutputStream) Map_{}(out map[{}]{}) () {{\n".format(type_name_safe, *kv)
 
-	method_in_text += """
+	method_in_text += ("""
     map_len := int(stream.UInt32LE())
     m := make(map[{}]{})
     for i := 0; i < map_len; i++ {{
-		key, value := cb(stream)
+		key := {}
+		value := {}
 		m[key] = value
 	}}
 	return m
-}}\n""".format(*kv)
+}}\n""").format(*kv, get_type(m[0]).load("stream"), get_type(m[1]).load("stream"))
 
 	method_out_text += """
 	length := len(out)
     stream.UInt32LE(uint32(length))
     for key, value := range out {{
-		cb(stream, key, value)
+    	{}
+    	{}
 	}}
 	return
-}}\n""".format(real_type_name)
-	
-	map_in_method += "    case \"{}\":\n        return stream.Map{}(cb.(func(*InputStream)({},{})))\n".format("Map<{},{}>".format(m[0], m[1]), type_name_safe, *kv)
-	map_out_method += "    case map[{}]{}:\n        stream.Map{}(cb.(func(*OutputStream,{},{})), m.(map[{}]{}))\n".format(*kv, type_name_safe, *kv, *kv)
+}}\n""".format(get_type(m[0]).save("stream", "key"), get_type(m[1]).save("stream", "value"))
 
 	memes += method_in_text
 	memes += method_out_text
-
-map_in_method += """
-	default:
-		fmt.Printf("map: invalid type", typeName)
-		return nil
-	}
-}
-"""
-map_out_method += """
-	default:
-		fmt.Printf("map: invalid type", reflect.TypeOf(m))
-	}
-	return
-}
-"""
-
-nex_file.write(map_in_method)
-nex_file.write(map_out_method)
 
 nex_file.write(memes)

@@ -96,7 +96,7 @@ func Account_Management_GetAccountData_Wrapper(req NEX.RMCRequest) (ret NEX.RMCR
     rmcResult, returnValue,OAccountData := Account_Management_GetAccountData()
     responseStream := NEX.NewOutputStream()
     responseStream.UInt32LE(returnValue)
-    responseStream.Struct(OAccountData)
+    responseStream.Struct_AccountData(OAccountData)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -109,7 +109,7 @@ func Account_Management_GetPrivateData_Wrapper(req NEX.RMCRequest) (ret NEX.RMCR
     rmcResult, returnValue,OData := Account_Management_GetPrivateData()
     responseStream := NEX.NewOutputStream()
     responseStream.Bool(returnValue)
-    responseStream.Struct(OData)
+    responseStream.Struct_Data(OData)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -124,7 +124,7 @@ func Account_Management_GetPublicData_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRe
     rmcResult, returnValue,OData := Account_Management_GetPublicData(IdPrincipal)
     responseStream := NEX.NewOutputStream()
     responseStream.Bool(returnValue)
-    responseStream.Struct(OData)
+    responseStream.Struct_Data(OData)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -135,11 +135,11 @@ func Account_Management_GetPublicData_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRe
 }
 func Account_Management_GetMultiplePublicData_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    LstPrincipals := stream.List("PID", func (innerStream *NEX.InputStream) NEX.PID { return NEX.PID(innerStream.UInt32LE()) }).([]NEX.PID)
+    LstPrincipals := stream.List_PID()
     rmcResult, returnValue,OData := Account_Management_GetMultiplePublicData(LstPrincipals)
     responseStream := NEX.NewOutputStream()
     responseStream.Bool(returnValue)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Data) { innerStream.Struct(data) }, OData)
+    responseStream.List_Data(OData)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -178,8 +178,8 @@ func Account_Management_UpdateAccountEmail_Wrapper(req NEX.RMCRequest) (ret NEX.
 }
 func Account_Management_UpdateCustomData_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    OPublicData := stream.Struct("Data").(NEX.Data)
-    OPrivateData := stream.Struct("Data").(NEX.Data)
+    OPublicData := stream.Struct_Data()
+    OPrivateData := stream.Struct_Data()
     rmcResult, returnValue := Account_Management_UpdateCustomData(OPublicData,OPrivateData)
     responseStream := NEX.NewOutputStream()
     responseStream.UInt32LE(uint32(returnValue))
@@ -195,10 +195,10 @@ func Account_Management_FindByNameRegex_Wrapper(req NEX.RMCRequest) (ret NEX.RMC
     stream := NEX.NewInputStream(req.Parameters)
     UiGroups := stream.UInt32LE()
     StrRegex := string(stream.String())
-    ResultRange := stream.Struct("ResultRange").(NEX.ResultRange)
+    ResultRange := stream.Struct_ResultRange()
     rmcResult, PlstAccounts := Account_Management_FindByNameRegex(UiGroups,StrRegex,ResultRange)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.BasicAccountInfo) { innerStream.Struct(data) }, PlstAccounts)
+    responseStream.List_BasicAccountInfo(PlstAccounts)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -298,8 +298,8 @@ func Account_Management_CreateAccountWithCustomData_Wrapper(req NEX.RMCRequest) 
     StrKey := string(stream.String())
     UiGroups := stream.UInt32LE()
     StrEmail := string(stream.String())
-    OPublicData := stream.Struct("Data").(NEX.Data)
-    OPrivateData := stream.Struct("Data").(NEX.Data)
+    OPublicData := stream.Struct_Data()
+    OPrivateData := stream.Struct_Data()
     rmcResult := Account_Management_CreateAccountWithCustomData(StrPrincipalName,StrKey,UiGroups,StrEmail,OPublicData,OPrivateData)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -313,9 +313,9 @@ func Account_Management_CreateAccountWithCustomData_Wrapper(req NEX.RMCRequest) 
 func Account_Management_RetrieveAccount_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     rmcResult, OAccountData,OPublicData,OPrivateData := Account_Management_RetrieveAccount()
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(OAccountData)
-    responseStream.Struct(OPublicData)
-    responseStream.Struct(OPrivateData)
+    responseStream.Struct_AccountData(OAccountData)
+    responseStream.Struct_Data(OPublicData)
+    responseStream.Struct_Data(OPrivateData)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -328,8 +328,8 @@ func Account_Management_UpdateAccount_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRe
     stream := NEX.NewInputStream(req.Parameters)
     StrKey := string(stream.String())
     StrEmail := string(stream.String())
-    OPublicData := stream.Struct("Data").(NEX.Data)
-    OPrivateData := stream.Struct("Data").(NEX.Data)
+    OPublicData := stream.Struct_Data()
+    OPrivateData := stream.Struct_Data()
     rmcResult := Account_Management_UpdateAccount(StrKey,StrEmail,OPublicData,OPrivateData)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -359,10 +359,10 @@ func Account_Management_FindByNameLike_Wrapper(req NEX.RMCRequest) (ret NEX.RMCR
     stream := NEX.NewInputStream(req.Parameters)
     UiGroups := stream.UInt32LE()
     StrLike := string(stream.String())
-    ResultRange := stream.Struct("ResultRange").(NEX.ResultRange)
+    ResultRange := stream.Struct_ResultRange()
     rmcResult, PlstAccounts := Account_Management_FindByNameLike(UiGroups,StrLike,ResultRange)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.BasicAccountInfo) { innerStream.Struct(data) }, PlstAccounts)
+    responseStream.List_BasicAccountInfo(PlstAccounts)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -377,7 +377,7 @@ func Account_Management_CustomCreateAccount_Wrapper(req NEX.RMCRequest) (ret NEX
     StrKey := string(stream.String())
     UiGroups := stream.UInt32LE()
     StrEmail := string(stream.String())
-    OAuthData := stream.Struct("Data").(NEX.Data)
+    OAuthData := stream.Struct_Data()
     rmcResult, Pid := Account_Management_CustomCreateAccount(StrPrincipalName,StrKey,UiGroups,StrEmail,OAuthData)
     responseStream := NEX.NewOutputStream()
     responseStream.UInt32LE(uint32(Pid))
@@ -395,7 +395,7 @@ func Account_Management_NintendoCreateAccount_Wrapper(req NEX.RMCRequest) (ret N
     StrKey := string(stream.String())
     UiGroups := stream.UInt32LE()
     StrEmail := string(stream.String())
-    OAuthData := stream.Struct("Data").(NEX.Data)
+    OAuthData := stream.Struct_Data()
     rmcResult, Pid,PidHMAC := Account_Management_NintendoCreateAccount(StrPrincipalName,StrKey,UiGroups,StrEmail,OAuthData)
     responseStream := NEX.NewOutputStream()
     responseStream.UInt32LE(uint32(Pid))
@@ -414,7 +414,7 @@ func Account_Management_LookupOrCreateAccount_Wrapper(req NEX.RMCRequest) (ret N
     StrKey := string(stream.String())
     UiGroups := stream.UInt32LE()
     StrEmail := string(stream.String())
-    OAuthData := stream.Struct("Data").(NEX.Data)
+    OAuthData := stream.Struct_Data()
     rmcResult, Pid := Account_Management_LookupOrCreateAccount(StrPrincipalName,StrKey,UiGroups,StrEmail,OAuthData)
     responseStream := NEX.NewOutputStream()
     responseStream.UInt32LE(uint32(Pid))
@@ -460,7 +460,7 @@ func Authentication_Login_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     responseStream.UInt32LE(uint32(returnValue))
     responseStream.UInt32LE(uint32(PidPrincipal))
     responseStream.Buffer(PbufResponse)
-    responseStream.Struct(PConnectionData)
+    responseStream.Struct_RVConnectionData(PConnectionData)
     responseStream.String(string(StrReturnMsg))
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
@@ -473,15 +473,14 @@ func Authentication_Login_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 func Authentication_LoginEx_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     StrUserName := string(stream.String())
-    OExtraData := stream.Struct("Data").(NEX.Data)
+    OExtraData := stream.Struct_Data()
     rmcResult, returnValue,PidPrincipal,PbufResponse,PConnectionData,StrReturnMsg := Authentication_LoginEx(StrUserName,OExtraData)
     responseStream := NEX.NewOutputStream()
     responseStream.UInt32LE(uint32(returnValue))
     responseStream.UInt32LE(uint32(PidPrincipal))
     responseStream.Buffer(PbufResponse)
-    responseStream.Struct(PConnectionData)
+    responseStream.Struct_RVConnectionData(PConnectionData)
     responseStream.String(string(StrReturnMsg))
-    //responseStream.String(string(PSourceKey))
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -536,13 +535,13 @@ func Authentication_GetName_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 }
 func Authentication_LoginWithContext_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    LoginData := stream.Struct("Data").(NEX.Data)
+    LoginData := stream.Struct_Data()
     rmcResult, returnValue,PidPrincipal,PbufResponse,PConnectionData := Authentication_LoginWithContext(LoginData)
     responseStream := NEX.NewOutputStream()
     responseStream.UInt32LE(uint32(returnValue))
     responseStream.UInt32LE(uint32(PidPrincipal))
     responseStream.Buffer(PbufResponse)
-    responseStream.Struct(PConnectionData)
+    responseStream.Struct_RVConnectionData(PConnectionData)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -553,10 +552,10 @@ func Authentication_LoginWithContext_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRes
 }
 func Data_Store_PrepareGetObjectV1_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStorePrepareGetParamV1").(NEX.DataStorePrepareGetParamV1)
+    Param := stream.Struct_DataStorePrepareGetParamV1()
     rmcResult, PReqGetInfo := Data_Store_PrepareGetObjectV1(Param)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PReqGetInfo)
+    responseStream.Struct_DataStoreReqGetInfoV1(PReqGetInfo)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -567,10 +566,10 @@ func Data_Store_PrepareGetObjectV1_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespo
 }
 func Data_Store_PreparePostObjectV1_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStorePreparePostParamV1").(NEX.DataStorePreparePostParamV1)
+    Param := stream.Struct_DataStorePreparePostParamV1()
     rmcResult, PReqPostInfo := Data_Store_PreparePostObjectV1(Param)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PReqPostInfo)
+    responseStream.Struct_DataStoreReqPostInfoV1(PReqPostInfo)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -581,7 +580,7 @@ func Data_Store_PreparePostObjectV1_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResp
 }
 func Data_Store_CompletePostObjectV1_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStoreCompletePostParamV1").(NEX.DataStoreCompletePostParamV1)
+    Param := stream.Struct_DataStoreCompletePostParamV1()
     rmcResult := Data_Store_CompletePostObjectV1(Param)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -594,7 +593,7 @@ func Data_Store_CompletePostObjectV1_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRes
 }
 func Data_Store_DeleteObject_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStoreDeleteParam").(NEX.DataStoreDeleteParam)
+    Param := stream.Struct_DataStoreDeleteParam()
     rmcResult := Data_Store_DeleteObject(Param)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -607,11 +606,11 @@ func Data_Store_DeleteObject_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 }
 func Data_Store_DeleteObjects_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Params := stream.List("DataStoreDeleteParam", func (innerStream *NEX.InputStream) NEX.DataStoreDeleteParam { return innerStream.Struct("DataStoreDeleteParam").(NEX.DataStoreDeleteParam) }).([]NEX.DataStoreDeleteParam)
+    Params := stream.List_DataStoreDeleteParam()
     Transactional := stream.Bool()
     rmcResult, PResults := Data_Store_DeleteObjects(Params,Transactional)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Result) { innerStream.UInt32LE(uint32(data)) }, PResults)
+    responseStream.List_Result(PResults)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -622,7 +621,7 @@ func Data_Store_DeleteObjects_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) 
 }
 func Data_Store_ChangeMetaV1_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStoreChangeMetaParamV1").(NEX.DataStoreChangeMetaParamV1)
+    Param := stream.Struct_DataStoreChangeMetaParamV1()
     rmcResult := Data_Store_ChangeMetaV1(Param)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -635,12 +634,12 @@ func Data_Store_ChangeMetaV1_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 }
 func Data_Store_ChangeMetasV1_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    DataIds := stream.List("Uint64", func (innerStream *NEX.InputStream) uint64 { return innerStream.UInt64LE() }).([]uint64)
-    Params := stream.List("DataStoreChangeMetaParamV1", func (innerStream *NEX.InputStream) NEX.DataStoreChangeMetaParamV1 { return innerStream.Struct("DataStoreChangeMetaParamV1").(NEX.DataStoreChangeMetaParamV1) }).([]NEX.DataStoreChangeMetaParamV1)
+    DataIds := stream.List_uint64()
+    Params := stream.List_DataStoreChangeMetaParamV1()
     Transactional := stream.Bool()
     rmcResult, PResults := Data_Store_ChangeMetasV1(DataIds,Params,Transactional)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Result) { innerStream.UInt32LE(uint32(data)) }, PResults)
+    responseStream.List_Result(PResults)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -651,10 +650,10 @@ func Data_Store_ChangeMetasV1_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) 
 }
 func Data_Store_GetMeta_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStoreGetMetaParam").(NEX.DataStoreGetMetaParam)
+    Param := stream.Struct_DataStoreGetMetaParam()
     rmcResult, PMetaInfo := Data_Store_GetMeta(Param)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PMetaInfo)
+    responseStream.Struct_DataStoreMetaInfo(PMetaInfo)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -665,12 +664,12 @@ func Data_Store_GetMeta_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 }
 func Data_Store_GetMetas_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    DataIds := stream.List("Uint64", func (innerStream *NEX.InputStream) uint64 { return innerStream.UInt64LE() }).([]uint64)
-    Param := stream.Struct("DataStoreGetMetaParam").(NEX.DataStoreGetMetaParam)
+    DataIds := stream.List_uint64()
+    Param := stream.Struct_DataStoreGetMetaParam()
     rmcResult, PMetaInfo,PResults := Data_Store_GetMetas(DataIds,Param)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.DataStoreMetaInfo) { innerStream.Struct(data) }, PMetaInfo)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Result) { innerStream.UInt32LE(uint32(data)) }, PResults)
+    responseStream.List_DataStoreMetaInfo(PMetaInfo)
+    responseStream.List_Result(PResults)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -681,10 +680,10 @@ func Data_Store_GetMetas_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 }
 func Data_Store_PrepareUpdateObject_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStorePrepareUpdateParam").(NEX.DataStorePrepareUpdateParam)
+    Param := stream.Struct_DataStorePrepareUpdateParam()
     rmcResult, PReqUpdateInfo := Data_Store_PrepareUpdateObject(Param)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PReqUpdateInfo)
+    responseStream.Struct_DataStoreReqUpdateInfo(PReqUpdateInfo)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -695,7 +694,7 @@ func Data_Store_PrepareUpdateObject_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResp
 }
 func Data_Store_CompleteUpdateObject_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStoreCompleteUpdateParam").(NEX.DataStoreCompleteUpdateParam)
+    Param := stream.Struct_DataStoreCompleteUpdateParam()
     rmcResult := Data_Store_CompleteUpdateObject(Param)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -708,10 +707,10 @@ func Data_Store_CompleteUpdateObject_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRes
 }
 func Data_Store_SearchObject_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStoreSearchParam").(NEX.DataStoreSearchParam)
+    Param := stream.Struct_DataStoreSearchParam()
     rmcResult, PSearchResult := Data_Store_SearchObject(Param)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PSearchResult)
+    responseStream.Struct_DataStoreSearchResult(PSearchResult)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -722,10 +721,10 @@ func Data_Store_SearchObject_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 }
 func Data_Store_GetNotificationUrl_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStoreGetNotificationUrlParam").(NEX.DataStoreGetNotificationUrlParam)
+    Param := stream.Struct_DataStoreGetNotificationUrlParam()
     rmcResult, Info := Data_Store_GetNotificationUrl(Param)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(Info)
+    responseStream.Struct_DataStoreReqGetNotificationUrlInfo(Info)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -736,10 +735,10 @@ func Data_Store_GetNotificationUrl_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespo
 }
 func Data_Store_GetNewArrivedNotificationsV1_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStoreGetNewArrivedNotificationsParam").(NEX.DataStoreGetNewArrivedNotificationsParam)
+    Param := stream.Struct_DataStoreGetNewArrivedNotificationsParam()
     rmcResult, PResult,PHasNext := Data_Store_GetNewArrivedNotificationsV1(Param)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.DataStoreNotificationV1) { innerStream.Struct(data) }, PResult)
+    responseStream.List_DataStoreNotificationV1(PResult)
     responseStream.Bool(PHasNext)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
@@ -751,12 +750,12 @@ func Data_Store_GetNewArrivedNotificationsV1_Wrapper(req NEX.RMCRequest) (ret NE
 }
 func Data_Store_RateObject_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Target := stream.Struct("DataStoreRatingTarget").(NEX.DataStoreRatingTarget)
-    Param := stream.Struct("DataStoreRateObjectParam").(NEX.DataStoreRateObjectParam)
+    Target := stream.Struct_DataStoreRatingTarget()
+    Param := stream.Struct_DataStoreRateObjectParam()
     FetchRatings := stream.Bool()
     rmcResult, PRating := Data_Store_RateObject(Target,Param,FetchRatings)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PRating)
+    responseStream.Struct_DataStoreRatingInfo(PRating)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -767,11 +766,11 @@ func Data_Store_RateObject_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 }
 func Data_Store_GetRating_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Target := stream.Struct("DataStoreRatingTarget").(NEX.DataStoreRatingTarget)
+    Target := stream.Struct_DataStoreRatingTarget()
     AccessPassword := stream.UInt64LE()
     rmcResult, PRating := Data_Store_GetRating(Target,AccessPassword)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PRating)
+    responseStream.Struct_DataStoreRatingInfo(PRating)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -782,12 +781,12 @@ func Data_Store_GetRating_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 }
 func Data_Store_GetRatings_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    DataIds := stream.List("Uint64", func (innerStream *NEX.InputStream) uint64 { return innerStream.UInt64LE() }).([]uint64)
+    DataIds := stream.List_uint64()
     AccessPassword := stream.UInt64LE()
     rmcResult, PRatings,PResults := Data_Store_GetRatings(DataIds,AccessPassword)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data []NEX.DataStoreRatingInfoWithSlot) { innerStream.List(func (innerStream *NEX.OutputStream, data NEX.DataStoreRatingInfoWithSlot) { innerStream.Struct(data) }, data) }, PRatings)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Result) { innerStream.UInt32LE(uint32(data)) }, PResults)
+    responseStream.List_List_DataStoreRatingInfoWithSlot(PRatings)
+    responseStream.List_Result(PResults)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -798,7 +797,7 @@ func Data_Store_GetRatings_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 }
 func Data_Store_ResetRating_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Target := stream.Struct("DataStoreRatingTarget").(NEX.DataStoreRatingTarget)
+    Target := stream.Struct_DataStoreRatingTarget()
     UpdatePassword := stream.UInt64LE()
     rmcResult := Data_Store_ResetRating(Target,UpdatePassword)
     responseStream := NEX.NewOutputStream()
@@ -812,11 +811,11 @@ func Data_Store_ResetRating_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 }
 func Data_Store_ResetRatings_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    DataIds := stream.List("Uint64", func (innerStream *NEX.InputStream) uint64 { return innerStream.UInt64LE() }).([]uint64)
+    DataIds := stream.List_uint64()
     Transactional := stream.Bool()
     rmcResult, PResults := Data_Store_ResetRatings(DataIds,Transactional)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Result) { innerStream.UInt32LE(uint32(data)) }, PResults)
+    responseStream.List_Result(PResults)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -827,10 +826,10 @@ func Data_Store_ResetRatings_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 }
 func Data_Store_GetSpecificMetaV1_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStoreGetSpecificMetaParamV1").(NEX.DataStoreGetSpecificMetaParamV1)
+    Param := stream.Struct_DataStoreGetSpecificMetaParamV1()
     rmcResult, PMetaInfos := Data_Store_GetSpecificMetaV1(Param)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.DataStoreSpecificMetaInfoV1) { innerStream.Struct(data) }, PMetaInfos)
+    responseStream.List_DataStoreSpecificMetaInfoV1(PMetaInfos)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -841,7 +840,7 @@ func Data_Store_GetSpecificMetaV1_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
 }
 func Data_Store_PostMetaBinary_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStorePreparePostParam").(NEX.DataStorePreparePostParam)
+    Param := stream.Struct_DataStorePreparePostParam()
     rmcResult, DataId := Data_Store_PostMetaBinary(Param)
     responseStream := NEX.NewOutputStream()
     responseStream.UInt64LE(DataId)
@@ -855,7 +854,7 @@ func Data_Store_PostMetaBinary_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse)
 }
 func Data_Store_TouchObject_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStoreTouchObjectParam").(NEX.DataStoreTouchObjectParam)
+    Param := stream.Struct_DataStoreTouchObjectParam()
     rmcResult := Data_Store_TouchObject(Param)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -868,12 +867,12 @@ func Data_Store_TouchObject_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 }
 func Data_Store_GetRatingWithLog_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Target := stream.Struct("DataStoreRatingTarget").(NEX.DataStoreRatingTarget)
+    Target := stream.Struct_DataStoreRatingTarget()
     AccessPassword := stream.UInt64LE()
     rmcResult, PRating,PRatingLog := Data_Store_GetRatingWithLog(Target,AccessPassword)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PRating)
-    responseStream.Struct(PRatingLog)
+    responseStream.Struct_DataStoreRatingInfo(PRating)
+    responseStream.Struct_DataStoreRatingLog(PRatingLog)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -884,10 +883,10 @@ func Data_Store_GetRatingWithLog_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespons
 }
 func Data_Store_PreparePostObject_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStorePreparePostParam").(NEX.DataStorePreparePostParam)
+    Param := stream.Struct_DataStorePreparePostParam()
     rmcResult, PReqPostInfo := Data_Store_PreparePostObject(Param)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PReqPostInfo)
+    responseStream.Struct_DataStoreReqPostInfo(PReqPostInfo)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -898,10 +897,10 @@ func Data_Store_PreparePostObject_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
 }
 func Data_Store_PrepareGetObject_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStorePrepareGetParam").(NEX.DataStorePrepareGetParam)
+    Param := stream.Struct_DataStorePrepareGetParam()
     rmcResult, PReqGetInfo := Data_Store_PrepareGetObject(Param)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PReqGetInfo)
+    responseStream.Struct_DataStoreReqGetInfo(PReqGetInfo)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -912,7 +911,7 @@ func Data_Store_PrepareGetObject_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespons
 }
 func Data_Store_CompletePostObject_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStoreCompletePostParam").(NEX.DataStoreCompletePostParam)
+    Param := stream.Struct_DataStoreCompletePostParam()
     rmcResult := Data_Store_CompletePostObject(Param)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -925,10 +924,10 @@ func Data_Store_CompletePostObject_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespo
 }
 func Data_Store_GetNewArrivedNotifications_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStoreGetNewArrivedNotificationsParam").(NEX.DataStoreGetNewArrivedNotificationsParam)
+    Param := stream.Struct_DataStoreGetNewArrivedNotificationsParam()
     rmcResult, PResult,PHasNext := Data_Store_GetNewArrivedNotifications(Param)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.DataStoreNotification) { innerStream.Struct(data) }, PResult)
+    responseStream.List_DataStoreNotification(PResult)
     responseStream.Bool(PHasNext)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
@@ -940,10 +939,10 @@ func Data_Store_GetNewArrivedNotifications_Wrapper(req NEX.RMCRequest) (ret NEX.
 }
 func Data_Store_GetSpecificMeta_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStoreGetSpecificMetaParam").(NEX.DataStoreGetSpecificMetaParam)
+    Param := stream.Struct_DataStoreGetSpecificMetaParam()
     rmcResult, PMetaInfos := Data_Store_GetSpecificMeta(Param)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.DataStoreSpecificMetaInfo) { innerStream.Struct(data) }, PMetaInfos)
+    responseStream.List_DataStoreSpecificMetaInfo(PMetaInfos)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -954,11 +953,11 @@ func Data_Store_GetSpecificMeta_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse
 }
 func Data_Store_GetPersistenceInfo_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    OwnerId := stream.UInt64LE()
+    OwnerId := NEX.PID(stream.UInt32LE())
     PersistenceSlotId := stream.UInt16LE()
     rmcResult, PPersistenceInfo := Data_Store_GetPersistenceInfo(OwnerId,PersistenceSlotId)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PPersistenceInfo)
+    responseStream.Struct_DataStorePersistenceInfo(PPersistenceInfo)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -969,12 +968,12 @@ func Data_Store_GetPersistenceInfo_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespo
 }
 func Data_Store_GetPersistenceInfos_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    OwnerId := stream.UInt64LE()
-    PersistenceSlotIds := stream.List("Uint16", func (innerStream *NEX.InputStream) uint16 { return innerStream.UInt16LE() }).([]uint16)
+    OwnerId := NEX.PID(stream.UInt32LE())
+    PersistenceSlotIds := stream.List_uint16()
     rmcResult, PPersistenceInfo,PResults := Data_Store_GetPersistenceInfos(OwnerId,PersistenceSlotIds)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.DataStorePersistenceInfo) { innerStream.Struct(data) }, PPersistenceInfo)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Result) { innerStream.UInt32LE(uint32(data)) }, PResults)
+    responseStream.List_DataStorePersistenceInfo(PPersistenceInfo)
+    responseStream.List_Result(PResults)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1014,11 +1013,11 @@ func Data_Store_UnperpetuateObject_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespo
 }
 func Data_Store_PrepareGetObjectOrMetaBinary_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStorePrepareGetParam").(NEX.DataStorePrepareGetParam)
+    Param := stream.Struct_DataStorePrepareGetParam()
     rmcResult, PReqGetInfo,PReqGetAdditionalMeta := Data_Store_PrepareGetObjectOrMetaBinary(Param)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PReqGetInfo)
-    responseStream.Struct(PReqGetAdditionalMeta)
+    responseStream.Struct_DataStoreReqGetInfo(PReqGetInfo)
+    responseStream.Struct_DataStoreReqGetAdditionalMeta(PReqGetAdditionalMeta)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1032,7 +1031,7 @@ func Data_Store_GetPasswordInfo_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse
     DataId := stream.UInt64LE()
     rmcResult, PPasswordInfo := Data_Store_GetPasswordInfo(DataId)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PPasswordInfo)
+    responseStream.Struct_DataStorePasswordInfo(PPasswordInfo)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1043,11 +1042,11 @@ func Data_Store_GetPasswordInfo_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse
 }
 func Data_Store_GetPasswordInfos_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    DataIds := stream.List("Uint64", func (innerStream *NEX.InputStream) uint64 { return innerStream.UInt64LE() }).([]uint64)
+    DataIds := stream.List_uint64()
     rmcResult, PPasswordInfos,PResults := Data_Store_GetPasswordInfos(DataIds)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.DataStorePasswordInfo) { innerStream.Struct(data) }, PPasswordInfos)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Result) { innerStream.UInt32LE(uint32(data)) }, PResults)
+    responseStream.List_DataStorePasswordInfo(PPasswordInfos)
+    responseStream.List_Result(PResults)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1058,11 +1057,11 @@ func Data_Store_GetPasswordInfos_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespons
 }
 func Data_Store_GetMetasMultipleParam_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Params := stream.List("DataStoreGetMetaParam", func (innerStream *NEX.InputStream) NEX.DataStoreGetMetaParam { return innerStream.Struct("DataStoreGetMetaParam").(NEX.DataStoreGetMetaParam) }).([]NEX.DataStoreGetMetaParam)
+    Params := stream.List_DataStoreGetMetaParam()
     rmcResult, PMetaInfo,PResults := Data_Store_GetMetasMultipleParam(Params)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.DataStoreMetaInfo) { innerStream.Struct(data) }, PMetaInfo)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Result) { innerStream.UInt32LE(uint32(data)) }, PResults)
+    responseStream.List_DataStoreMetaInfo(PMetaInfo)
+    responseStream.List_Result(PResults)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1073,7 +1072,7 @@ func Data_Store_GetMetasMultipleParam_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRe
 }
 func Data_Store_CompletePostObjects_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    DataIds := stream.List("Uint64", func (innerStream *NEX.InputStream) uint64 { return innerStream.UInt64LE() }).([]uint64)
+    DataIds := stream.List_uint64()
     rmcResult := Data_Store_CompletePostObjects(DataIds)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -1086,7 +1085,7 @@ func Data_Store_CompletePostObjects_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResp
 }
 func Data_Store_ChangeMeta_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStoreChangeMetaParam").(NEX.DataStoreChangeMetaParam)
+    Param := stream.Struct_DataStoreChangeMetaParam()
     rmcResult := Data_Store_ChangeMeta(Param)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -1099,12 +1098,12 @@ func Data_Store_ChangeMeta_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 }
 func Data_Store_ChangeMetas_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    DataIds := stream.List("Uint64", func (innerStream *NEX.InputStream) uint64 { return innerStream.UInt64LE() }).([]uint64)
-    Params := stream.List("DataStoreChangeMetaParam", func (innerStream *NEX.InputStream) NEX.DataStoreChangeMetaParam { return innerStream.Struct("DataStoreChangeMetaParam").(NEX.DataStoreChangeMetaParam) }).([]NEX.DataStoreChangeMetaParam)
+    DataIds := stream.List_uint64()
+    Params := stream.List_DataStoreChangeMetaParam()
     Transactional := stream.Bool()
     rmcResult, PResults := Data_Store_ChangeMetas(DataIds,Params,Transactional)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Result) { innerStream.UInt32LE(uint32(data)) }, PResults)
+    responseStream.List_Result(PResults)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1115,14 +1114,14 @@ func Data_Store_ChangeMetas_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 }
 func Data_Store_RateObjects_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Targets := stream.List("DataStoreRatingTarget", func (innerStream *NEX.InputStream) NEX.DataStoreRatingTarget { return innerStream.Struct("DataStoreRatingTarget").(NEX.DataStoreRatingTarget) }).([]NEX.DataStoreRatingTarget)
-    Params := stream.List("DataStoreRateObjectParam", func (innerStream *NEX.InputStream) NEX.DataStoreRateObjectParam { return innerStream.Struct("DataStoreRateObjectParam").(NEX.DataStoreRateObjectParam) }).([]NEX.DataStoreRateObjectParam)
+    Targets := stream.List_DataStoreRatingTarget()
+    Params := stream.List_DataStoreRateObjectParam()
     Transactional := stream.Bool()
     FetchRatings := stream.Bool()
     rmcResult, PRatings,PResults := Data_Store_RateObjects(Targets,Params,Transactional,FetchRatings)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.DataStoreRatingInfo) { innerStream.Struct(data) }, PRatings)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Result) { innerStream.UInt32LE(uint32(data)) }, PResults)
+    responseStream.List_DataStoreRatingInfo(PRatings)
+    responseStream.List_Result(PResults)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1134,7 +1133,7 @@ func Data_Store_RateObjects_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 func Data_Store_PostMetaBinaryWithDataId_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     DataId := stream.UInt64LE()
-    Param := stream.Struct("DataStorePreparePostParam").(NEX.DataStorePreparePostParam)
+    Param := stream.Struct_DataStorePreparePostParam()
     rmcResult := Data_Store_PostMetaBinaryWithDataId(DataId,Param)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -1147,12 +1146,12 @@ func Data_Store_PostMetaBinaryWithDataId_Wrapper(req NEX.RMCRequest) (ret NEX.RM
 }
 func Data_Store_PostMetaBinariesWithDataId_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    DataIds := stream.List("Uint64", func (innerStream *NEX.InputStream) uint64 { return innerStream.UInt64LE() }).([]uint64)
-    Params := stream.List("DataStorePreparePostParam", func (innerStream *NEX.InputStream) NEX.DataStorePreparePostParam { return innerStream.Struct("DataStorePreparePostParam").(NEX.DataStorePreparePostParam) }).([]NEX.DataStorePreparePostParam)
+    DataIds := stream.List_uint64()
+    Params := stream.List_DataStorePreparePostParam()
     Transactional := stream.Bool()
     rmcResult, PResults := Data_Store_PostMetaBinariesWithDataId(DataIds,Params,Transactional)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Result) { innerStream.UInt32LE(uint32(data)) }, PResults)
+    responseStream.List_Result(PResults)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1163,13 +1162,13 @@ func Data_Store_PostMetaBinariesWithDataId_Wrapper(req NEX.RMCRequest) (ret NEX.
 }
 func Data_Store_RateObjectWithPosting_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Target := stream.Struct("DataStoreRatingTarget").(NEX.DataStoreRatingTarget)
-    RateParam := stream.Struct("DataStoreRateObjectParam").(NEX.DataStoreRateObjectParam)
-    PostParam := stream.Struct("DataStorePreparePostParam").(NEX.DataStorePreparePostParam)
+    Target := stream.Struct_DataStoreRatingTarget()
+    RateParam := stream.Struct_DataStoreRateObjectParam()
+    PostParam := stream.Struct_DataStorePreparePostParam()
     FetchRatings := stream.Bool()
     rmcResult, PRating := Data_Store_RateObjectWithPosting(Target,RateParam,PostParam,FetchRatings)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PRating)
+    responseStream.Struct_DataStoreRatingInfo(PRating)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1180,15 +1179,15 @@ func Data_Store_RateObjectWithPosting_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRe
 }
 func Data_Store_RateObjectsWithPosting_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Targets := stream.List("DataStoreRatingTarget", func (innerStream *NEX.InputStream) NEX.DataStoreRatingTarget { return innerStream.Struct("DataStoreRatingTarget").(NEX.DataStoreRatingTarget) }).([]NEX.DataStoreRatingTarget)
-    RateParams := stream.List("DataStoreRateObjectParam", func (innerStream *NEX.InputStream) NEX.DataStoreRateObjectParam { return innerStream.Struct("DataStoreRateObjectParam").(NEX.DataStoreRateObjectParam) }).([]NEX.DataStoreRateObjectParam)
-    PostParams := stream.List("DataStorePreparePostParam", func (innerStream *NEX.InputStream) NEX.DataStorePreparePostParam { return innerStream.Struct("DataStorePreparePostParam").(NEX.DataStorePreparePostParam) }).([]NEX.DataStorePreparePostParam)
+    Targets := stream.List_DataStoreRatingTarget()
+    RateParams := stream.List_DataStoreRateObjectParam()
+    PostParams := stream.List_DataStorePreparePostParam()
     Transactional := stream.Bool()
     FetchRatings := stream.Bool()
     rmcResult, PRatings,PResults := Data_Store_RateObjectsWithPosting(Targets,RateParams,PostParams,Transactional,FetchRatings)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.DataStoreRatingInfo) { innerStream.Struct(data) }, PRatings)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Result) { innerStream.UInt32LE(uint32(data)) }, PResults)
+    responseStream.List_DataStoreRatingInfo(PRatings)
+    responseStream.List_Result(PResults)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1199,11 +1198,11 @@ func Data_Store_RateObjectsWithPosting_Wrapper(req NEX.RMCRequest) (ret NEX.RMCR
 }
 func Data_Store_GetObjectInfos_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    DataIds := stream.List("Uint64", func (innerStream *NEX.InputStream) uint64 { return innerStream.UInt64LE() }).([]uint64)
+    DataIds := stream.List_uint64()
     rmcResult, PInfos,PResults := Data_Store_GetObjectInfos(DataIds)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.DataStoreReqGetInfo) { innerStream.Struct(data) }, PInfos)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Result) { innerStream.UInt32LE(uint32(data)) }, PResults)
+    responseStream.List_DataStoreReqGetInfo(PInfos)
+    responseStream.List_Result(PResults)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1214,10 +1213,10 @@ func Data_Store_GetObjectInfos_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse)
 }
 func Data_Store_SearchObjectLight_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStoreSearchParam").(NEX.DataStoreSearchParam)
+    Param := stream.Struct_DataStoreSearchParam()
     rmcResult, PSearchResult := Data_Store_SearchObjectLight(Param)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PSearchResult)
+    responseStream.Struct_DataStoreSearchResult(PSearchResult)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1228,8 +1227,8 @@ func Data_Store_SearchObjectLight_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
 }
 func Data_Store_AddToBufferQueue_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("BufferQueueParam").(NEX.BufferQueueParam)
-    Buffer := stream.Buffer()
+    Param := stream.Struct_BufferQueueParam()
+    Buffer := stream.QBuffer()
     rmcResult := Data_Store_AddToBufferQueue(Param,Buffer)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -1242,11 +1241,11 @@ func Data_Store_AddToBufferQueue_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespons
 }
 func Data_Store_AddToBufferQueues_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Params := stream.List("BufferQueueParam", func (innerStream *NEX.InputStream) NEX.BufferQueueParam { return innerStream.Struct("BufferQueueParam").(NEX.BufferQueueParam) }).([]NEX.BufferQueueParam)
-    Buffers := stream.List("NEX.QBuffer", func (innerStream *NEX.InputStream) NEX.QBuffer { return innerStream.Buffer() }).([]NEX.QBuffer)
+    Params := stream.List_BufferQueueParam()
+    Buffers := stream.List_QBuffer()
     rmcResult, PResults := Data_Store_AddToBufferQueues(Params,Buffers)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Result) { innerStream.UInt32LE(uint32(data)) }, PResults)
+    responseStream.List_Result(PResults)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1257,10 +1256,10 @@ func Data_Store_AddToBufferQueues_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
 }
 func Data_Store_GetBufferQueue_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("BufferQueueParam").(NEX.BufferQueueParam)
+    Param := stream.Struct_BufferQueueParam()
     rmcResult, PBufferQueue := Data_Store_GetBufferQueue(Param)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.QBuffer) { innerStream.Buffer(data) }, PBufferQueue)
+    responseStream.List_QBuffer(PBufferQueue)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1271,11 +1270,11 @@ func Data_Store_GetBufferQueue_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse)
 }
 func Data_Store_GetBufferQueues_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Params := stream.List("BufferQueueParam", func (innerStream *NEX.InputStream) NEX.BufferQueueParam { return innerStream.Struct("BufferQueueParam").(NEX.BufferQueueParam) }).([]NEX.BufferQueueParam)
+    Params := stream.List_BufferQueueParam()
     rmcResult, PBufferQueueLst,PResults := Data_Store_GetBufferQueues(Params)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data []NEX.QBuffer) { innerStream.List(func (innerStream *NEX.OutputStream, data NEX.QBuffer) { innerStream.Buffer(data) }, data) }, PBufferQueueLst)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Result) { innerStream.UInt32LE(uint32(data)) }, PResults)
+    responseStream.List_List_QBuffer(PBufferQueueLst)
+    responseStream.List_Result(PResults)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1286,10 +1285,10 @@ func Data_Store_GetBufferQueues_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse
 }
 func Data_Store_ClearBufferQueues_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Params := stream.List("BufferQueueParam", func (innerStream *NEX.InputStream) NEX.BufferQueueParam { return innerStream.Struct("BufferQueueParam").(NEX.BufferQueueParam) }).([]NEX.BufferQueueParam)
+    Params := stream.List_BufferQueueParam()
     rmcResult, PResults := Data_Store_ClearBufferQueues(Params)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Result) { innerStream.UInt32LE(uint32(data)) }, PResults)
+    responseStream.List_Result(PResults)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1300,10 +1299,10 @@ func Data_Store_ClearBufferQueues_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
 }
 func Data_Store_SearchBalloon_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("DataStoreSearchBalloonParam").(NEX.DataStoreSearchBalloonParam)
+    Param := stream.Struct_DataStoreSearchBalloonParam()
     rmcResult, PResults := Data_Store_SearchBalloon(Param)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.DataStoreSearchBalloonResultSet) { innerStream.Struct(data) }, PResults)
+    responseStream.List_DataStoreSearchBalloonResultSet(PResults)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1314,10 +1313,10 @@ func Data_Store_SearchBalloon_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) 
 }
 func Data_Store_FetchMyInfos_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Patam := stream.Struct("DataStoreFetchMyInfosParam").(NEX.DataStoreFetchMyInfosParam)
+    Patam := stream.Struct_DataStoreFetchMyInfosParam()
     rmcResult, PResult := Data_Store_FetchMyInfos(Patam)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PResult)
+    responseStream.Struct_DataStoreFetchMyInfosResult(PResult)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1365,7 +1364,7 @@ func Friends_AddFriendWithDetails_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
     StrMessage := string(stream.String())
     rmcResult, RelationshipData := Friends_AddFriendWithDetails(UiPlayer,UiDetails,StrMessage)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(RelationshipData)
+    responseStream.Struct_RelationshipData(RelationshipData)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1381,7 +1380,7 @@ func Friends_AddFriendByNameWithDetails_Wrapper(req NEX.RMCRequest) (ret NEX.RMC
     StrMessage := string(stream.String())
     rmcResult, RelationshipData := Friends_AddFriendByNameWithDetails(UiPlayer,UiDetails,StrMessage)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(RelationshipData)
+    responseStream.Struct_RelationshipData(RelationshipData)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1483,7 +1482,7 @@ func Friends_GetList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     BReversed := stream.Bool()
     rmcResult, LstFriendsList := Friends_GetList(ByRelationship,BReversed)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data uint32) { innerStream.UInt32LE(data) }, LstFriendsList)
+    responseStream.List_uint32(LstFriendsList)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1498,7 +1497,7 @@ func Friends_GetDetailedList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     BReversed := stream.Bool()
     rmcResult, LstFriendsList := Friends_GetDetailedList(ByRelationship,BReversed)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendData) { innerStream.Struct(data) }, LstFriendsList)
+    responseStream.List_FriendData(LstFriendsList)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1509,11 +1508,11 @@ func Friends_GetDetailedList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 }
 func Friends_GetRelationships_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    ResultRange := stream.Struct("ResultRange").(NEX.ResultRange)
+    ResultRange := stream.Struct_ResultRange()
     rmcResult, UiTotalCount,LstRelationshipsList := Friends_GetRelationships(ResultRange)
     responseStream := NEX.NewOutputStream()
     responseStream.UInt32LE(UiTotalCount)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.RelationshipData) { innerStream.Struct(data) }, LstRelationshipsList)
+    responseStream.List_RelationshipData(LstRelationshipsList)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1524,7 +1523,7 @@ func Friends_GetRelationships_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) 
 }
 func Friends_3DS_UpdateProfile_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    ProfileData := stream.Struct("MyProfile").(NEX.MyProfile)
+    ProfileData := stream.Struct_MyProfile()
     rmcResult := Friends_3DS_UpdateProfile(ProfileData)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -1537,7 +1536,7 @@ func Friends_3DS_UpdateProfile_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse)
 }
 func Friends_3DS_UpdateMii_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Mii := stream.Struct("Mii").(NEX.Mii)
+    Mii := stream.Struct_Mii()
     rmcResult := Friends_3DS_UpdateMii(Mii)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -1550,7 +1549,7 @@ func Friends_3DS_UpdateMii_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 }
 func Friends_3DS_UpdateMiiList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    MiiList := stream.Struct("MiiList").(NEX.MiiList)
+    MiiList := stream.Struct_MiiList()
     rmcResult := Friends_3DS_UpdateMiiList(MiiList)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -1563,7 +1562,7 @@ func Friends_3DS_UpdateMiiList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse)
 }
 func Friends_3DS_UpdatePlayedGames_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    PlayedGames := stream.List("PlayedGame", func (innerStream *NEX.InputStream) NEX.PlayedGame { return innerStream.Struct("PlayedGame").(NEX.PlayedGame) }).([]NEX.PlayedGame)
+    PlayedGames := stream.List_PlayedGame()
     rmcResult := Friends_3DS_UpdatePlayedGames(PlayedGames)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -1591,10 +1590,10 @@ func Friends_3DS_UpdatePreference_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
 }
 func Friends_3DS_GetFriendMii_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Friends := stream.List("FriendMiiRequest", func (innerStream *NEX.InputStream) NEX.FriendMiiRequest { return innerStream.Struct("FriendMiiRequest").(NEX.FriendMiiRequest) }).([]NEX.FriendMiiRequest)
+    Friends := stream.List_FriendMiiRequest()
     rmcResult, Miis := Friends_3DS_GetFriendMii(Friends)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendMii) { innerStream.Struct(data) }, Miis)
+    responseStream.List_FriendMii(Miis)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1605,10 +1604,10 @@ func Friends_3DS_GetFriendMii_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) 
 }
 func Friends_3DS_GetFriendMiiList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Friends := stream.List("FriendMiiRequest", func (innerStream *NEX.InputStream) NEX.FriendMiiRequest { return innerStream.Struct("FriendMiiRequest").(NEX.FriendMiiRequest) }).([]NEX.FriendMiiRequest)
+    Friends := stream.List_FriendMiiRequest()
     rmcResult, MiiLists := Friends_3DS_GetFriendMiiList(Friends)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendMiiList) { innerStream.Struct(data) }, MiiLists)
+    responseStream.List_FriendMiiList(MiiLists)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1619,10 +1618,10 @@ func Friends_3DS_GetFriendMiiList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
 }
 func Friends_3DS_GetFriendRelationships_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Unknown := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    Unknown := stream.List_uint32()
     rmcResult, FriendRelationships := Friends_3DS_GetFriendRelationships(Unknown)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendRelationship) { innerStream.Struct(data) }, FriendRelationships)
+    responseStream.List_FriendRelationship(FriendRelationships)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1637,7 +1636,7 @@ func Friends_3DS_AddFriendByPrincipalID_Wrapper(req NEX.RMCRequest) (ret NEX.RMC
     PrincipalId := stream.UInt32LE()
     rmcResult, FriendRelationship := Friends_3DS_AddFriendByPrincipalID(Unknown,PrincipalId)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(FriendRelationship)
+    responseStream.Struct_FriendRelationship(FriendRelationship)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1649,7 +1648,7 @@ func Friends_3DS_AddFriendByPrincipalID_Wrapper(req NEX.RMCRequest) (ret NEX.RMC
 func Friends_3DS_GetAllFriends_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     rmcResult, FriendRelationships := Friends_3DS_GetAllFriends()
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendRelationship) { innerStream.Struct(data) }, FriendRelationships)
+    responseStream.List_FriendRelationship(FriendRelationships)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1661,11 +1660,11 @@ func Friends_3DS_GetAllFriends_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse)
 func Friends_3DS_SyncFriend_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     Unknown := stream.UInt64LE()
-    Unknown2 := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
-    Unknown3 := stream.List("Uint64", func (innerStream *NEX.InputStream) uint64 { return innerStream.UInt64LE() }).([]uint64)
+    Unknown2 := stream.List_uint32()
+    Unknown3 := stream.List_uint64()
     rmcResult, FriendList := Friends_3DS_SyncFriend(Unknown,Unknown2,Unknown3)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendRelationship) { innerStream.Struct(data) }, FriendList)
+    responseStream.List_FriendRelationship(FriendList)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1676,7 +1675,7 @@ func Friends_3DS_SyncFriend_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 }
 func Friends_3DS_UpdatePresence_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    PresenceInfo := stream.Struct("NintendoPresence").(NEX.NintendoPresence)
+    PresenceInfo := stream.Struct_NintendoPresence()
     Unknown := stream.Bool()
     rmcResult := Friends_3DS_UpdatePresence(PresenceInfo,Unknown)
     responseStream := NEX.NewOutputStream()
@@ -1690,7 +1689,7 @@ func Friends_3DS_UpdatePresence_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse
 }
 func Friends_3DS_UpdateFavoriteGameKey_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    GameKey := stream.Struct("GameKey").(NEX.GameKey)
+    GameKey := stream.Struct_GameKey()
     rmcResult := Friends_3DS_UpdateFavoriteGameKey(GameKey)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -1716,10 +1715,10 @@ func Friends_3DS_UpdateComment_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse)
 }
 func Friends_3DS_GetFriendPresence_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Unknown := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    Unknown := stream.List_uint32()
     rmcResult, FriendPresenceList := Friends_3DS_GetFriendPresence(Unknown)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendPresence) { innerStream.Struct(data) }, FriendPresenceList)
+    responseStream.List_FriendPresence(FriendPresenceList)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1730,10 +1729,10 @@ func Friends_3DS_GetFriendPresence_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespo
 }
 func Friends_3DS_GetFriendPicture_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Unknown := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    Unknown := stream.List_uint32()
     rmcResult, FriendPictures := Friends_3DS_GetFriendPicture(Unknown)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendPicture) { innerStream.Struct(data) }, FriendPictures)
+    responseStream.List_FriendPicture(FriendPictures)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1744,10 +1743,10 @@ func Friends_3DS_GetFriendPicture_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
 }
 func Friends_3DS_GetFriendPersistentInfo_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Unknown := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    Unknown := stream.List_uint32()
     rmcResult, PersistentInfo := Friends_3DS_GetFriendPersistentInfo(Unknown)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendPersistentInfo) { innerStream.Struct(data) }, PersistentInfo)
+    responseStream.List_FriendPersistentInfo(PersistentInfo)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1758,7 +1757,7 @@ func Friends_3DS_GetFriendPersistentInfo_Wrapper(req NEX.RMCRequest) (ret NEX.RM
 }
 func Friends_3DS_SendInvitation_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Unknown := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    Unknown := stream.List_uint32()
     rmcResult := Friends_3DS_SendInvitation(Unknown)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -1771,19 +1770,19 @@ func Friends_3DS_SendInvitation_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse
 }
 func Friends_Wii_U_GetAllInformation_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    NNAInfo := stream.Struct("NNAInfo").(NEX.NNAInfo)
-    NintendoPresence := stream.Struct("NintendoPresenceV2").(NEX.NintendoPresenceV2)
+    NNAInfo := stream.Struct_NNAInfo()
+    NintendoPresence := stream.Struct_NintendoPresenceV2()
     Birthday := NEX.DateTime(stream.UInt64LE())
     rmcResult, PrincipalPreference,StatusMessage,FriendList,SentFriendRequests,ReceivedFriendRequests,Blacklist,Unknown,Notifications,Unknown2 := Friends_Wii_U_GetAllInformation(NNAInfo,NintendoPresence,Birthday)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PrincipalPreference)
-    responseStream.Struct(StatusMessage)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendInfo) { innerStream.Struct(data) }, FriendList)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendRequest) { innerStream.Struct(data) }, SentFriendRequests)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FriendRequest) { innerStream.Struct(data) }, ReceivedFriendRequests)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.BlacklistedPrincipal) { innerStream.Struct(data) }, Blacklist)
+    responseStream.Struct_PrincipalPreference(PrincipalPreference)
+    responseStream.Struct_Comment(StatusMessage)
+    responseStream.List_FriendInfo(FriendList)
+    responseStream.List_FriendRequest(SentFriendRequests)
+    responseStream.List_FriendRequest(ReceivedFriendRequests)
+    responseStream.List_BlacklistedPrincipal(Blacklist)
     responseStream.Bool(Unknown)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.PersistentNotification) { innerStream.Struct(data) }, Notifications)
+    responseStream.List_PersistentNotification(Notifications)
     responseStream.Bool(Unknown2)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
@@ -1798,8 +1797,8 @@ func Friends_Wii_U_AddFriend_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     Pid := NEX.PID(stream.UInt32LE())
     rmcResult, FriendRequest,FriendInfo := Friends_Wii_U_AddFriend(Pid)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(FriendRequest)
-    responseStream.Struct(FriendInfo)
+    responseStream.Struct_FriendRequest(FriendRequest)
+    responseStream.Struct_FriendInfo(FriendInfo)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1813,8 +1812,8 @@ func Friends_Wii_U_AddFriendByName_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespo
     Name := string(stream.String())
     rmcResult, FriendRequest,FriendInfo := Friends_Wii_U_AddFriendByName(Name)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(FriendRequest)
-    responseStream.Struct(FriendInfo)
+    responseStream.Struct_FriendRequest(FriendRequest)
+    responseStream.Struct_FriendInfo(FriendInfo)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1843,12 +1842,12 @@ func Friends_Wii_U_AddFriendRequest_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResp
     Unknown3 := string(stream.String())
     Unknown4 := stream.UInt8()
     Unknown5 := string(stream.String())
-    GameKey := stream.Struct("GameKey").(NEX.GameKey)
+    GameKey := stream.Struct_GameKey()
     Unknown6 := NEX.DateTime(stream.UInt64LE())
     rmcResult, FriendRequest,FriendInfo := Friends_Wii_U_AddFriendRequest(Unknown,Unknown2,Unknown3,Unknown4,Unknown5,GameKey,Unknown6)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(FriendRequest)
-    responseStream.Struct(FriendInfo)
+    responseStream.Struct_FriendRequest(FriendRequest)
+    responseStream.Struct_FriendInfo(FriendInfo)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1875,7 +1874,7 @@ func Friends_Wii_U_AcceptFriendRequest_Wrapper(req NEX.RMCRequest) (ret NEX.RMCR
     Id := stream.UInt64LE()
     rmcResult, FriendInfo := Friends_Wii_U_AcceptFriendRequest(Id)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(FriendInfo)
+    responseStream.Struct_FriendInfo(FriendInfo)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1902,7 +1901,7 @@ func Friends_Wii_U_DenyFriendRequest_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRes
     Id := stream.UInt64LE()
     rmcResult, BlacklistedPrincipal := Friends_Wii_U_DenyFriendRequest(Id)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(BlacklistedPrincipal)
+    responseStream.Struct_BlacklistedPrincipal(BlacklistedPrincipal)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1913,7 +1912,7 @@ func Friends_Wii_U_DenyFriendRequest_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRes
 }
 func Friends_Wii_U_MarkFriendRequestsAsReceived_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    FriendRequests := stream.List("Uint64", func (innerStream *NEX.InputStream) uint64 { return innerStream.UInt64LE() }).([]uint64)
+    FriendRequests := stream.List_uint64()
     rmcResult := Friends_Wii_U_MarkFriendRequestsAsReceived(FriendRequests)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -1926,10 +1925,10 @@ func Friends_Wii_U_MarkFriendRequestsAsReceived_Wrapper(req NEX.RMCRequest) (ret
 }
 func Friends_Wii_U_AddBlackList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    BlacklistedPrincipal := stream.Struct("BlacklistedPrincipal").(NEX.BlacklistedPrincipal)
+    BlacklistedPrincipal := stream.Struct_BlacklistedPrincipal()
     rmcResult, BlacklistedPrincipal := Friends_Wii_U_AddBlackList(BlacklistedPrincipal)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(BlacklistedPrincipal)
+    responseStream.Struct_BlacklistedPrincipal(BlacklistedPrincipal)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -1953,7 +1952,7 @@ func Friends_Wii_U_RemoveBlackList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespo
 }
 func Friends_Wii_U_UpdatePresence_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    NintendoPresence := stream.Struct("NintendoPresenceV2").(NEX.NintendoPresenceV2)
+    NintendoPresence := stream.Struct_NintendoPresenceV2()
     rmcResult := Friends_Wii_U_UpdatePresence(NintendoPresence)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -1966,7 +1965,7 @@ func Friends_Wii_U_UpdatePresence_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
 }
 func Friends_Wii_U_UpdateMii_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Mii := stream.Struct("MiiV2").(NEX.MiiV2)
+    Mii := stream.Struct_MiiV2()
     rmcResult, Unknown := Friends_Wii_U_UpdateMii(Mii)
     responseStream := NEX.NewOutputStream()
     responseStream.UInt64LE(uint64(Unknown))
@@ -1980,7 +1979,7 @@ func Friends_Wii_U_UpdateMii_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 }
 func Friends_Wii_U_UpdateComment_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    StatusMessage := stream.Struct("Comment").(NEX.Comment)
+    StatusMessage := stream.Struct_Comment()
     rmcResult, Unknown := Friends_Wii_U_UpdateComment(StatusMessage)
     responseStream := NEX.NewOutputStream()
     responseStream.UInt64LE(uint64(Unknown))
@@ -1994,7 +1993,7 @@ func Friends_Wii_U_UpdateComment_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespons
 }
 func Friends_Wii_U_UpdatePreference_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    PrincipalPreferenc := stream.Struct("PrincipalPreference").(NEX.PrincipalPreference)
+    PrincipalPreferenc := stream.Struct_PrincipalPreference()
     rmcResult := Friends_Wii_U_UpdatePreference(PrincipalPreferenc)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -2007,10 +2006,10 @@ func Friends_Wii_U_UpdatePreference_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResp
 }
 func Friends_Wii_U_GetBasicInfo_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Pids := stream.List("PID", func (innerStream *NEX.InputStream) NEX.PID { return NEX.PID(innerStream.UInt32LE()) }).([]NEX.PID)
+    Pids := stream.List_PID()
     rmcResult, Infos := Friends_Wii_U_GetBasicInfo(Pids)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.PrincipalBasicInfo) { innerStream.Struct(data) }, Infos)
+    responseStream.List_PrincipalBasicInfo(Infos)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2021,7 +2020,7 @@ func Friends_Wii_U_GetBasicInfo_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse
 }
 func Friends_Wii_U_DeleteFriendFlags_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Unknown := stream.List("PersistentNotification", func (innerStream *NEX.InputStream) NEX.PersistentNotification { return innerStream.Struct("PersistentNotification").(NEX.PersistentNotification) }).([]NEX.PersistentNotification)
+    Unknown := stream.List_PersistentNotification()
     rmcResult := Friends_Wii_U_DeleteFriendFlags(Unknown)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -2046,10 +2045,10 @@ func Friends_Wii_U_CheckSettingStatus_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRe
 }
 func Friends_Wii_U_GetRequestBlockSettings_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Unknown := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    Unknown := stream.List_uint32()
     rmcResult, Settings := Friends_Wii_U_GetRequestBlockSettings(Unknown)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.PrincipalRequestBlockSetting) { innerStream.Struct(data) }, Settings)
+    responseStream.List_PrincipalRequestBlockSetting(Settings)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2060,7 +2059,7 @@ func Friends_Wii_U_GetRequestBlockSettings_Wrapper(req NEX.RMCRequest) (ret NEX.
 }
 func Match_Making_RegisterGathering_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    AnyGathering := stream.Struct("Data").(NEX.Data)
+    AnyGathering := stream.Struct_Data()
     rmcResult, returnValue := Match_Making_RegisterGathering(AnyGathering)
     responseStream := NEX.NewOutputStream()
     responseStream.UInt32LE(returnValue)
@@ -2088,7 +2087,7 @@ func Match_Making_UnregisterGathering_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRe
 }
 func Match_Making_UnregisterGatherings_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    LstGatherings := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    LstGatherings := stream.List_uint32()
     rmcResult, returnValue := Match_Making_UnregisterGatherings(LstGatherings)
     responseStream := NEX.NewOutputStream()
     responseStream.Bool(returnValue)
@@ -2102,7 +2101,7 @@ func Match_Making_UnregisterGatherings_Wrapper(req NEX.RMCRequest) (ret NEX.RMCR
 }
 func Match_Making_UpdateGathering_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    AnyGathering := stream.Struct("Data").(NEX.Data)
+    AnyGathering := stream.Struct_Data()
     rmcResult, returnValue := Match_Making_UpdateGathering(AnyGathering)
     responseStream := NEX.NewOutputStream()
     responseStream.Bool(returnValue)
@@ -2117,7 +2116,7 @@ func Match_Making_UpdateGathering_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
 func Match_Making_Invite_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     IdGathering := stream.UInt32LE()
-    LstPrincipals := stream.List("PID", func (innerStream *NEX.InputStream) NEX.PID { return NEX.PID(innerStream.UInt32LE()) }).([]NEX.PID)
+    LstPrincipals := stream.List_PID()
     StrMessage := string(stream.String())
     rmcResult, returnValue := Match_Making_Invite(IdGathering,LstPrincipals,StrMessage)
     responseStream := NEX.NewOutputStream()
@@ -2163,7 +2162,7 @@ func Match_Making_DeclineInvitation_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResp
 func Match_Making_CancelInvitation_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     IdGathering := stream.UInt32LE()
-    LstPrincipals := stream.List("PID", func (innerStream *NEX.InputStream) NEX.PID { return NEX.PID(innerStream.UInt32LE()) }).([]NEX.PID)
+    LstPrincipals := stream.List_PID()
     StrMessage := string(stream.String())
     rmcResult, returnValue := Match_Making_CancelInvitation(IdGathering,LstPrincipals,StrMessage)
     responseStream := NEX.NewOutputStream()
@@ -2181,7 +2180,7 @@ func Match_Making_GetInvitationsSent_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRes
     IdGathering := stream.UInt32LE()
     rmcResult, LstInvitations := Match_Making_GetInvitationsSent(IdGathering)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Invitation) { innerStream.Struct(data) }, LstInvitations)
+    responseStream.List_Invitation(LstInvitations)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2193,7 +2192,7 @@ func Match_Making_GetInvitationsSent_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRes
 func Match_Making_GetInvitationsReceived_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     rmcResult, LstInvitations := Match_Making_GetInvitationsReceived()
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Invitation) { innerStream.Struct(data) }, LstInvitations)
+    responseStream.List_Invitation(LstInvitations)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2237,7 +2236,7 @@ func Match_Making_GetParticipants_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
     IdGathering := stream.UInt32LE()
     rmcResult, LstParticipants := Match_Making_GetParticipants(IdGathering)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.PID) { innerStream.UInt32LE(uint32(data)) }, LstParticipants)
+    responseStream.List_PID(LstParticipants)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2249,7 +2248,7 @@ func Match_Making_GetParticipants_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
 func Match_Making_AddParticipants_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     IdGathering := stream.UInt32LE()
-    LstParticipants := stream.List("PID", func (innerStream *NEX.InputStream) NEX.PID { return NEX.PID(innerStream.UInt32LE()) }).([]NEX.PID)
+    LstParticipants := stream.List_PID()
     StrMessage := string(stream.String())
     rmcResult, returnValue := Match_Making_AddParticipants(IdGathering,LstParticipants,StrMessage)
     responseStream := NEX.NewOutputStream()
@@ -2267,7 +2266,7 @@ func Match_Making_GetDetailedParticipants_Wrapper(req NEX.RMCRequest) (ret NEX.R
     IdGathering := stream.UInt32LE()
     rmcResult, LstParticipants := Match_Making_GetDetailedParticipants(IdGathering)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.ParticipantDetails) { innerStream.Struct(data) }, LstParticipants)
+    responseStream.List_ParticipantDetails(LstParticipants)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2281,7 +2280,7 @@ func Match_Making_GetParticipantsURLs_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRe
     IdGathering := stream.UInt32LE()
     rmcResult, LstStationURL := Match_Making_GetParticipantsURLs(IdGathering)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.StationURL) { innerStream.String(string(data)) }, LstStationURL)
+    responseStream.List_StationURL(LstStationURL)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2293,10 +2292,10 @@ func Match_Making_GetParticipantsURLs_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRe
 func Match_Making_FindByType_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     StrType := string(stream.String())
-    ResultRange := stream.Struct("ResultRange").(NEX.ResultRange)
+    ResultRange := stream.Struct_ResultRange()
     rmcResult, LstGathering := Match_Making_FindByType(StrType,ResultRange)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Data) { innerStream.Struct(data) }, LstGathering)
+    responseStream.List_Data(LstGathering)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2308,10 +2307,10 @@ func Match_Making_FindByType_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 func Match_Making_FindByDescription_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     StrDescription := string(stream.String())
-    ResultRange := stream.Struct("ResultRange").(NEX.ResultRange)
+    ResultRange := stream.Struct_ResultRange()
     rmcResult, LstGathering := Match_Making_FindByDescription(StrDescription,ResultRange)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Data) { innerStream.Struct(data) }, LstGathering)
+    responseStream.List_Data(LstGathering)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2323,10 +2322,10 @@ func Match_Making_FindByDescription_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResp
 func Match_Making_FindByDescriptionRegex_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     StrDescriptionRegex := string(stream.String())
-    ResultRange := stream.Struct("ResultRange").(NEX.ResultRange)
+    ResultRange := stream.Struct_ResultRange()
     rmcResult, LstGathering := Match_Making_FindByDescriptionRegex(StrDescriptionRegex,ResultRange)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Data) { innerStream.Struct(data) }, LstGathering)
+    responseStream.List_Data(LstGathering)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2337,10 +2336,10 @@ func Match_Making_FindByDescriptionRegex_Wrapper(req NEX.RMCRequest) (ret NEX.RM
 }
 func Match_Making_FindByID_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    LstID := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    LstID := stream.List_uint32()
     rmcResult, LstGathering := Match_Making_FindByID(LstID)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Data) { innerStream.Struct(data) }, LstGathering)
+    responseStream.List_Data(LstGathering)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2355,7 +2354,7 @@ func Match_Making_FindBySingleID_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespons
     rmcResult, BResult,PGathering := Match_Making_FindBySingleID(Id)
     responseStream := NEX.NewOutputStream()
     responseStream.Bool(BResult)
-    responseStream.Struct(PGathering)
+    responseStream.Struct_Data(PGathering)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2367,10 +2366,10 @@ func Match_Making_FindBySingleID_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespons
 func Match_Making_FindByOwner_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     Id := NEX.PID(stream.UInt32LE())
-    ResultRange := stream.Struct("ResultRange").(NEX.ResultRange)
+    ResultRange := stream.Struct_ResultRange()
     rmcResult, LstGathering := Match_Making_FindByOwner(Id,ResultRange)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Data) { innerStream.Struct(data) }, LstGathering)
+    responseStream.List_Data(LstGathering)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2381,10 +2380,10 @@ func Match_Making_FindByOwner_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) 
 }
 func Match_Making_FindByParticipants_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Pid := stream.List("PID", func (innerStream *NEX.InputStream) NEX.PID { return NEX.PID(innerStream.UInt32LE()) }).([]NEX.PID)
+    Pid := stream.List_PID()
     rmcResult, LstGathering := Match_Making_FindByParticipants(Pid)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Data) { innerStream.Struct(data) }, LstGathering)
+    responseStream.List_Data(LstGathering)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2395,10 +2394,10 @@ func Match_Making_FindByParticipants_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRes
 }
 func Match_Making_FindInvitations_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    ResultRange := stream.Struct("ResultRange").(NEX.ResultRange)
+    ResultRange := stream.Struct_ResultRange()
     rmcResult, LstGathering := Match_Making_FindInvitations(ResultRange)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Data) { innerStream.Struct(data) }, LstGathering)
+    responseStream.List_Data(LstGathering)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2410,10 +2409,10 @@ func Match_Making_FindInvitations_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
 func Match_Making_FindBySQLQuery_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     StrQuery := string(stream.String())
-    ResultRange := stream.Struct("ResultRange").(NEX.ResultRange)
+    ResultRange := stream.Struct_ResultRange()
     rmcResult, LstGathering := Match_Making_FindBySQLQuery(StrQuery,ResultRange)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Data) { innerStream.Struct(data) }, LstGathering)
+    responseStream.List_Data(LstGathering)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2500,7 +2499,7 @@ func Match_Making_SetState_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 func Match_Making_ReportStats_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     IdGathering := stream.UInt32LE()
-    LstStats := stream.List("GatheringStats", func (innerStream *NEX.InputStream) NEX.GatheringStats { return innerStream.Struct("GatheringStats").(NEX.GatheringStats) }).([]NEX.GatheringStats)
+    LstStats := stream.List_GatheringStats()
     rmcResult, returnValue := Match_Making_ReportStats(IdGathering,LstStats)
     responseStream := NEX.NewOutputStream()
     responseStream.Bool(returnValue)
@@ -2515,12 +2514,12 @@ func Match_Making_ReportStats_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) 
 func Match_Making_GetStats_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     IdGathering := stream.UInt32LE()
-    LstParticipants := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
-    LstColumns := stream.List("byte", func (innerStream *NEX.InputStream) uint8 { return innerStream.UInt8() }).([]uint8)
+    LstParticipants := stream.List_uint32()
+    LstColumns := stream.List_uint8()
     rmcResult, returnValue,PlstStats := Match_Making_GetStats(IdGathering,LstParticipants,LstColumns)
     responseStream := NEX.NewOutputStream()
     responseStream.Bool(returnValue)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.GatheringStats) { innerStream.Struct(data) }, PlstStats)
+    responseStream.List_GatheringStats(PlstStats)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2546,11 +2545,11 @@ func Match_Making_DeleteGathering_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
 func Match_Making_GetPendingDeletions_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     UiReason := stream.UInt32LE()
-    ResultRange := stream.Struct("ResultRange").(NEX.ResultRange)
+    ResultRange := stream.Struct_ResultRange()
     rmcResult, returnValue,LstDeletions := Match_Making_GetPendingDeletions(UiReason,ResultRange)
     responseStream := NEX.NewOutputStream()
     responseStream.Bool(returnValue)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.DeletionEntry) { innerStream.Struct(data) }, LstDeletions)
+    responseStream.List_DeletionEntry(LstDeletions)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2561,7 +2560,7 @@ func Match_Making_GetPendingDeletions_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRe
 }
 func Match_Making_DeleteFromDeletions_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    LstDeletions := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    LstDeletions := stream.List_uint32()
     rmcResult, returnValue := Match_Making_DeleteFromDeletions(LstDeletions)
     responseStream := NEX.NewOutputStream()
     responseStream.Bool(returnValue)
@@ -2576,7 +2575,7 @@ func Match_Making_DeleteFromDeletions_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRe
 func Match_Making_MigrateGatheringOwnershipV1_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     Gid := stream.UInt32LE()
-    LstPotentialNewOwnersID := stream.List("PID", func (innerStream *NEX.InputStream) NEX.PID { return NEX.PID(innerStream.UInt32LE()) }).([]NEX.PID)
+    LstPotentialNewOwnersID := stream.List_PID()
     rmcResult, returnValue := Match_Making_MigrateGatheringOwnershipV1(Gid,LstPotentialNewOwnersID)
     responseStream := NEX.NewOutputStream()
     responseStream.Bool(returnValue)
@@ -2591,10 +2590,10 @@ func Match_Making_MigrateGatheringOwnershipV1_Wrapper(req NEX.RMCRequest) (ret N
 func Match_Making_FindByDescriptionLike_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     StrDescriptionLike := string(stream.String())
-    ResultRange := stream.Struct("ResultRange").(NEX.ResultRange)
+    ResultRange := stream.Struct_ResultRange()
     rmcResult, LstGathering := Match_Making_FindByDescriptionLike(StrDescriptionLike,ResultRange)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Data) { innerStream.Struct(data) }, LstGathering)
+    responseStream.List_Data(LstGathering)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2620,7 +2619,7 @@ func Match_Making_RegisterLocalURL_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespo
 func Match_Making_RegisterLocalURLs_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     Gid := stream.UInt32LE()
-    LstUrls := stream.List("StationURL", func (innerStream *NEX.InputStream) NEX.StationURL { return NEX.StationURL(innerStream.String()) }).([]NEX.StationURL)
+    LstUrls := stream.List_StationURL()
     rmcResult := Match_Making_RegisterLocalURLs(Gid,LstUrls)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -2649,7 +2648,7 @@ func Match_Making_GetSessionURLs_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespons
     Gid := stream.UInt32LE()
     rmcResult, LstURLs := Match_Making_GetSessionURLs(Gid)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.StationURL) { innerStream.String(string(data)) }, LstURLs)
+    responseStream.List_StationURL(LstURLs)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2690,7 +2689,7 @@ func Match_Making_UpdateGatheringOwnership_Wrapper(req NEX.RMCRequest) (ret NEX.
 func Match_Making_MigrateGatheringOwnership_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     Gid := stream.UInt32LE()
-    LstPotentialNewOwnersID := stream.List("PID", func (innerStream *NEX.InputStream) NEX.PID { return NEX.PID(innerStream.UInt32LE()) }).([]NEX.PID)
+    LstPotentialNewOwnersID := stream.List_PID()
     ParticipantsOnly := stream.Bool()
     rmcResult := Match_Making_MigrateGatheringOwnership(Gid,LstPotentialNewOwnersID,ParticipantsOnly)
     responseStream := NEX.NewOutputStream()
@@ -2723,7 +2722,7 @@ func Match_Making_Ext_GetParticipants_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRe
     BOnlyActive := stream.Bool()
     rmcResult, LstParticipants := Match_Making_Ext_GetParticipants(IdGathering,BOnlyActive)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.PID) { innerStream.UInt32LE(uint32(data)) }, LstParticipants)
+    responseStream.List_PID(LstParticipants)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2738,7 +2737,7 @@ func Match_Making_Ext_GetDetailedParticipants_Wrapper(req NEX.RMCRequest) (ret N
     BOnlyActiv := stream.Bool()
     rmcResult, LstParticipants := Match_Making_Ext_GetDetailedParticipants(IdGathering,BOnlyActiv)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.ParticipantDetails) { innerStream.Struct(data) }, LstParticipants)
+    responseStream.List_ParticipantDetails(LstParticipants)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2749,10 +2748,10 @@ func Match_Making_Ext_GetDetailedParticipants_Wrapper(req NEX.RMCRequest) (ret N
 }
 func Match_Making_Ext_GetParticipantsURLs_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    LstGatherings := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    LstGatherings := stream.List_uint32()
     rmcResult, LstGatheringURLs := Match_Making_Ext_GetParticipantsURLs(LstGatherings)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.GatheringURLs) { innerStream.Struct(data) }, LstGatheringURLs)
+    responseStream.List_GatheringURLs(LstGatheringURLs)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2778,7 +2777,7 @@ func Match_Making_Ext_GetGatheringRelations_Wrapper(req NEX.RMCRequest) (ret NEX
 }
 func Match_Making_Ext_DeleteFromDeletions_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    LstDeletions := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    LstDeletions := stream.List_uint32()
     Pid := NEX.PID(stream.UInt32LE())
     rmcResult := Match_Making_Ext_DeleteFromDeletions(LstDeletions,Pid)
     responseStream := NEX.NewOutputStream()
@@ -2818,11 +2817,11 @@ func Matchmake_Extension_OpenParticipation_Wrapper(req NEX.RMCRequest) (ret NEX.
 }
 func Matchmake_Extension_AutoMatchmake_Postpone_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    AnyGathering := stream.Struct("Data").(NEX.Data)
+    AnyGathering := stream.Struct_Data()
     StrMessage := string(stream.String())
     rmcResult, JoinedGathering := Matchmake_Extension_AutoMatchmake_Postpone(AnyGathering,StrMessage)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(JoinedGathering)
+    responseStream.Struct_Data(JoinedGathering)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2833,11 +2832,11 @@ func Matchmake_Extension_AutoMatchmake_Postpone_Wrapper(req NEX.RMCRequest) (ret
 }
 func Matchmake_Extension_BrowseMatchmakeSession_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    SearchCriteria := stream.Struct("MatchmakeSessionSearchCriteria").(NEX.MatchmakeSessionSearchCriteria)
-    ResultRange := stream.Struct("ResultRange").(NEX.ResultRange)
+    SearchCriteria := stream.Struct_MatchmakeSessionSearchCriteria()
+    ResultRange := stream.Struct_ResultRange()
     rmcResult, LstGathering := Matchmake_Extension_BrowseMatchmakeSession(SearchCriteria,ResultRange)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Data) { innerStream.Struct(data) }, LstGathering)
+    responseStream.List_Data(LstGathering)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2848,12 +2847,12 @@ func Matchmake_Extension_BrowseMatchmakeSession_Wrapper(req NEX.RMCRequest) (ret
 }
 func Matchmake_Extension_BrowseMatchmakeSessionWithHostUrls_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    SearchCriteria := stream.Struct("MatchmakeSessionSearchCriteria").(NEX.MatchmakeSessionSearchCriteria)
-    ResultRange := stream.Struct("ResultRange").(NEX.ResultRange)
+    SearchCriteria := stream.Struct_MatchmakeSessionSearchCriteria()
+    ResultRange := stream.Struct_ResultRange()
     rmcResult, LstGathering,LstGatheringUrls := Matchmake_Extension_BrowseMatchmakeSessionWithHostUrls(SearchCriteria,ResultRange)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Data) { innerStream.Struct(data) }, LstGathering)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.GatheringURLs) { innerStream.Struct(data) }, LstGatheringUrls)
+    responseStream.List_Data(LstGathering)
+    responseStream.List_GatheringURLs(LstGatheringUrls)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2864,7 +2863,7 @@ func Matchmake_Extension_BrowseMatchmakeSessionWithHostUrls_Wrapper(req NEX.RMCR
 }
 func Matchmake_Extension_CreateMatchmakeSession_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    AnyGathering := stream.Struct("Data").(NEX.Data)
+    AnyGathering := stream.Struct_Data()
     StrMessage := string(stream.String())
     ParticipationCount := stream.UInt16LE()
     rmcResult, Gid,SessionKey := Matchmake_Extension_CreateMatchmakeSession(AnyGathering,StrMessage,ParticipationCount)
@@ -2930,7 +2929,7 @@ func Matchmake_Extension_GetFriendNotificationData_Wrapper(req NEX.RMCRequest) (
     UiType := stream.Int32LE()
     rmcResult, DataList := Matchmake_Extension_GetFriendNotificationData(UiType)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.NotificationEvent) { innerStream.Struct(data) }, DataList)
+    responseStream.List_NotificationEvent(DataList)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2956,7 +2955,7 @@ func Matchmake_Extension_UpdateApplicationBuffer_Wrapper(req NEX.RMCRequest) (re
 func Matchmake_Extension_UpdateMatchmakeSessionAttribute_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     Gid := stream.UInt32LE()
-    Attribs := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    Attribs := stream.List_uint32()
     rmcResult := Matchmake_Extension_UpdateMatchmakeSessionAttribute(Gid,Attribs)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -2969,10 +2968,10 @@ func Matchmake_Extension_UpdateMatchmakeSessionAttribute_Wrapper(req NEX.RMCRequ
 }
 func Matchmake_Extension_GetlstFriendNotificationData_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    LstTypes := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    LstTypes := stream.List_uint32()
     rmcResult, DataList := Matchmake_Extension_GetlstFriendNotificationData(LstTypes)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.NotificationEvent) { innerStream.Struct(data) }, DataList)
+    responseStream.List_NotificationEvent(DataList)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -2983,7 +2982,7 @@ func Matchmake_Extension_GetlstFriendNotificationData_Wrapper(req NEX.RMCRequest
 }
 func Matchmake_Extension_UpdateMatchmakeSession_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    AnyGathering := stream.Struct("Data").(NEX.Data)
+    AnyGathering := stream.Struct_Data()
     rmcResult := Matchmake_Extension_UpdateMatchmakeSession(AnyGathering)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -2996,12 +2995,12 @@ func Matchmake_Extension_UpdateMatchmakeSession_Wrapper(req NEX.RMCRequest) (ret
 }
 func Matchmake_Extension_AutoMatchmakeWithSearchCriteria_Postpone_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    LstSearchCriteria := stream.List("MatchmakeSessionSearchCriteria", func (innerStream *NEX.InputStream) NEX.MatchmakeSessionSearchCriteria { return innerStream.Struct("MatchmakeSessionSearchCriteria").(NEX.MatchmakeSessionSearchCriteria) }).([]NEX.MatchmakeSessionSearchCriteria)
-    AnyGathering := stream.Struct("Data").(NEX.Data)
+    LstSearchCriteria := stream.List_MatchmakeSessionSearchCriteria()
+    AnyGathering := stream.Struct_Data()
     StrMessage := string(stream.String())
     rmcResult, JoinedGathering := Matchmake_Extension_AutoMatchmakeWithSearchCriteria_Postpone(LstSearchCriteria,AnyGathering,StrMessage)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(JoinedGathering)
+    responseStream.Struct_Data(JoinedGathering)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3012,10 +3011,10 @@ func Matchmake_Extension_AutoMatchmakeWithSearchCriteria_Postpone_Wrapper(req NE
 }
 func Matchmake_Extension_GetPlayingSession_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    LstPid := stream.List("PID", func (innerStream *NEX.InputStream) NEX.PID { return NEX.PID(innerStream.UInt32LE()) }).([]NEX.PID)
+    LstPid := stream.List_PID()
     rmcResult, LstPlayingSession := Matchmake_Extension_GetPlayingSession(LstPid)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.PlayingSession) { innerStream.Struct(data) }, LstPlayingSession)
+    responseStream.List_PlayingSession(LstPlayingSession)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3026,7 +3025,7 @@ func Matchmake_Extension_GetPlayingSession_Wrapper(req NEX.RMCRequest) (ret NEX.
 }
 func Matchmake_Extension_CreateCommunity_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Community := stream.Struct("PersistentGathering").(NEX.PersistentGathering)
+    Community := stream.Struct_PersistentGathering()
     StrMessage := string(stream.String())
     rmcResult, Gid := Matchmake_Extension_CreateCommunity(Community,StrMessage)
     responseStream := NEX.NewOutputStream()
@@ -3041,7 +3040,7 @@ func Matchmake_Extension_CreateCommunity_Wrapper(req NEX.RMCRequest) (ret NEX.RM
 }
 func Matchmake_Extension_UpdateCommunity_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Community := stream.Struct("PersistentGathering").(NEX.PersistentGathering)
+    Community := stream.Struct_PersistentGathering()
     rmcResult := Matchmake_Extension_UpdateCommunity(Community)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -3069,10 +3068,10 @@ func Matchmake_Extension_JoinCommunity_Wrapper(req NEX.RMCRequest) (ret NEX.RMCR
 }
 func Matchmake_Extension_FindCommunityByGatheringId_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    LstGid := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    LstGid := stream.List_uint32()
     rmcResult, LstCommunity := Matchmake_Extension_FindCommunityByGatheringId(LstGid)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.PersistentGathering) { innerStream.Struct(data) }, LstCommunity)
+    responseStream.List_PersistentGathering(LstCommunity)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3084,10 +3083,10 @@ func Matchmake_Extension_FindCommunityByGatheringId_Wrapper(req NEX.RMCRequest) 
 func Matchmake_Extension_FindOfficialCommunity_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     IsAvailableOnly := stream.Bool()
-    ResultRange := stream.Struct("ResultRange").(NEX.ResultRange)
+    ResultRange := stream.Struct_ResultRange()
     rmcResult, LstCommunity := Matchmake_Extension_FindOfficialCommunity(IsAvailableOnly,ResultRange)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.PersistentGathering) { innerStream.Struct(data) }, LstCommunity)
+    responseStream.List_PersistentGathering(LstCommunity)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3099,10 +3098,10 @@ func Matchmake_Extension_FindOfficialCommunity_Wrapper(req NEX.RMCRequest) (ret 
 func Matchmake_Extension_FindCommunityByParticipant_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     Pid := NEX.PID(stream.UInt32LE())
-    ResultRange := stream.Struct("ResultRange").(NEX.ResultRange)
+    ResultRange := stream.Struct_ResultRange()
     rmcResult, LstCommunity := Matchmake_Extension_FindCommunityByParticipant(Pid,ResultRange)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.PersistentGathering) { innerStream.Struct(data) }, LstCommunity)
+    responseStream.List_PersistentGathering(LstCommunity)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3128,7 +3127,7 @@ func Matchmake_Extension_UpdatePrivacySetting_Wrapper(req NEX.RMCRequest) (ret N
 func Matchmake_Extension_GetMyBlockList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     rmcResult, LstPrincipalId := Matchmake_Extension_GetMyBlockList()
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.PID) { innerStream.UInt32LE(uint32(data)) }, LstPrincipalId)
+    responseStream.List_PID(LstPrincipalId)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3139,7 +3138,7 @@ func Matchmake_Extension_GetMyBlockList_Wrapper(req NEX.RMCRequest) (ret NEX.RMC
 }
 func Matchmake_Extension_AddToBlockList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    LstPrincipalId := stream.List("PID", func (innerStream *NEX.InputStream) NEX.PID { return NEX.PID(innerStream.UInt32LE()) }).([]NEX.PID)
+    LstPrincipalId := stream.List_PID()
     rmcResult := Matchmake_Extension_AddToBlockList(LstPrincipalId)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -3152,7 +3151,7 @@ func Matchmake_Extension_AddToBlockList_Wrapper(req NEX.RMCRequest) (ret NEX.RMC
 }
 func Matchmake_Extension_RemoveFromBlockList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    LstPrincipalId := stream.List("PID", func (innerStream *NEX.InputStream) NEX.PID { return NEX.PID(innerStream.UInt32LE()) }).([]NEX.PID)
+    LstPrincipalId := stream.List_PID()
     rmcResult := Matchmake_Extension_RemoveFromBlockList(LstPrincipalId)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -3221,11 +3220,11 @@ func Matchmake_Extension_JoinMatchmakeSessionEx_Wrapper(req NEX.RMCRequest) (ret
 }
 func Matchmake_Extension_GetSimplePlayingSession_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    LstPrincipalId := stream.List("PID", func (innerStream *NEX.InputStream) NEX.PID { return NEX.PID(innerStream.UInt32LE()) }).([]NEX.PID)
+    LstPrincipalId := stream.List_PID()
     IncludeLoginUser := stream.Bool()
     rmcResult, LstSimplePlayingSession := Matchmake_Extension_GetSimplePlayingSession(LstPrincipalId,IncludeLoginUser)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.SimplePlayingSession) { innerStream.Struct(data) }, LstSimplePlayingSession)
+    responseStream.List_SimplePlayingSession(LstSimplePlayingSession)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3236,10 +3235,10 @@ func Matchmake_Extension_GetSimplePlayingSession_Wrapper(req NEX.RMCRequest) (re
 }
 func Matchmake_Extension_GetSimpleCommunity_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    GatheringIdList := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    GatheringIdList := stream.List_uint32()
     rmcResult, LstSimpleCommunityList := Matchmake_Extension_GetSimpleCommunity(GatheringIdList)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.SimpleCommunity) { innerStream.Struct(data) }, LstSimpleCommunityList)
+    responseStream.List_SimpleCommunity(LstSimpleCommunityList)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3250,12 +3249,12 @@ func Matchmake_Extension_GetSimpleCommunity_Wrapper(req NEX.RMCRequest) (ret NEX
 }
 func Matchmake_Extension_AutoMatchmakeWithGatheringId_Postpone_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    LstGid := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
-    AnyGathering := stream.Struct("Data").(NEX.Data)
+    LstGid := stream.List_uint32()
+    AnyGathering := stream.Struct_Data()
     StrMessage := string(stream.String())
     rmcResult, JoinedGathering := Matchmake_Extension_AutoMatchmakeWithGatheringId_Postpone(LstGid,AnyGathering,StrMessage)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(JoinedGathering)
+    responseStream.Struct_Data(JoinedGathering)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3325,10 +3324,10 @@ func Matchmake_Extension_ClearMatchmakeSessionSystemPassword_Wrapper(req NEX.RMC
 }
 func Matchmake_Extension_CreateMatchmakeSessionWithParam_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    CreateMatchmakeSessionParam := stream.Struct("CreateMatchmakeSessionParam").(NEX.CreateMatchmakeSessionParam)
+    CreateMatchmakeSessionParam := stream.Struct_CreateMatchmakeSessionParam()
     rmcResult, JoinedMatchmakeSession := Matchmake_Extension_CreateMatchmakeSessionWithParam(CreateMatchmakeSessionParam)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(JoinedMatchmakeSession)
+    responseStream.Struct_MatchmakeSession(JoinedMatchmakeSession)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3339,10 +3338,10 @@ func Matchmake_Extension_CreateMatchmakeSessionWithParam_Wrapper(req NEX.RMCRequ
 }
 func Matchmake_Extension_JoinMatchmakeSessionWithParam_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    JoinMatchmakeSessionParam := stream.Struct("JoinMatchmakeSessionParam").(NEX.JoinMatchmakeSessionParam)
+    JoinMatchmakeSessionParam := stream.Struct_JoinMatchmakeSessionParam()
     rmcResult, JoinedMatchmakeSession := Matchmake_Extension_JoinMatchmakeSessionWithParam(JoinMatchmakeSessionParam)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(JoinedMatchmakeSession)
+    responseStream.Struct_MatchmakeSession(JoinedMatchmakeSession)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3353,10 +3352,10 @@ func Matchmake_Extension_JoinMatchmakeSessionWithParam_Wrapper(req NEX.RMCReques
 }
 func Matchmake_Extension_AutoMatchmakeWithParam_Postpone_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    AutoMatchmakeParam := stream.Struct("AutoMatchmakeParam").(NEX.AutoMatchmakeParam)
+    AutoMatchmakeParam := stream.Struct_AutoMatchmakeParam()
     rmcResult, JoinedMatchmakeSession := Matchmake_Extension_AutoMatchmakeWithParam_Postpone(AutoMatchmakeParam)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(JoinedMatchmakeSession)
+    responseStream.Struct_MatchmakeSession(JoinedMatchmakeSession)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3370,7 +3369,7 @@ func Matchmake_Extension_FindMatchmakeSessionByGatheringIdDetail_Wrapper(req NEX
     Gid := stream.UInt32LE()
     rmcResult, MatchmakeSession := Matchmake_Extension_FindMatchmakeSessionByGatheringIdDetail(Gid)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(MatchmakeSession)
+    responseStream.Struct_MatchmakeSession(MatchmakeSession)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3381,11 +3380,11 @@ func Matchmake_Extension_FindMatchmakeSessionByGatheringIdDetail_Wrapper(req NEX
 }
 func Matchmake_Extension_BrowseMatchmakeSessionNoHolder_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    SearchCriteria := stream.Struct("MatchmakeSessionSearchCriteria").(NEX.MatchmakeSessionSearchCriteria)
-    ResultRange := stream.Struct("ResultRange").(NEX.ResultRange)
+    SearchCriteria := stream.Struct_MatchmakeSessionSearchCriteria()
+    ResultRange := stream.Struct_ResultRange()
     rmcResult, LstMatchmakeSession := Matchmake_Extension_BrowseMatchmakeSessionNoHolder(SearchCriteria,ResultRange)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.MatchmakeSession) { innerStream.Struct(data) }, LstMatchmakeSession)
+    responseStream.List_MatchmakeSession(LstMatchmakeSession)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3396,12 +3395,12 @@ func Matchmake_Extension_BrowseMatchmakeSessionNoHolder_Wrapper(req NEX.RMCReque
 }
 func Matchmake_Extension_BrowseMatchmakeSessionWithHostUrlsNoHolder_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    SearchCriteria := stream.Struct("MatchmakeSessionSearchCriteria").(NEX.MatchmakeSessionSearchCriteria)
-    ResultRange := stream.Struct("ResultRange").(NEX.ResultRange)
+    SearchCriteria := stream.Struct_MatchmakeSessionSearchCriteria()
+    ResultRange := stream.Struct_ResultRange()
     rmcResult, LstMatchmakeSession,LstGatheringUrls := Matchmake_Extension_BrowseMatchmakeSessionWithHostUrlsNoHolder(SearchCriteria,ResultRange)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.MatchmakeSession) { innerStream.Struct(data) }, LstMatchmakeSession)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.GatheringURLs) { innerStream.Struct(data) }, LstGatheringUrls)
+    responseStream.List_MatchmakeSession(LstMatchmakeSession)
+    responseStream.List_GatheringURLs(LstGatheringUrls)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3412,7 +3411,7 @@ func Matchmake_Extension_BrowseMatchmakeSessionWithHostUrlsNoHolder_Wrapper(req 
 }
 func Matchmake_Extension_UpdateMatchmakeSessionPart_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    UpdateMatchmakeSessionParam := stream.Struct("UpdateMatchmakeSessionParam").(NEX.UpdateMatchmakeSessionParam)
+    UpdateMatchmakeSessionParam := stream.Struct_UpdateMatchmakeSessionParam()
     rmcResult := Matchmake_Extension_UpdateMatchmakeSessionPart(UpdateMatchmakeSessionParam)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -3425,7 +3424,7 @@ func Matchmake_Extension_UpdateMatchmakeSessionPart_Wrapper(req NEX.RMCRequest) 
 }
 func Matchmake_Extension_RequestMatchmaking_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    AutoMatchmakeParam := stream.Struct("AutoMatchmakeParam").(NEX.AutoMatchmakeParam)
+    AutoMatchmakeParam := stream.Struct_AutoMatchmakeParam()
     rmcResult, RequestId := Matchmake_Extension_RequestMatchmaking(AutoMatchmakeParam)
     responseStream := NEX.NewOutputStream()
     responseStream.UInt64LE(RequestId)
@@ -3463,10 +3462,10 @@ func Matchmake_Extension_WithdrawMatchmakingAll_Wrapper(req NEX.RMCRequest) (ret
 }
 func Matchmake_Extension_FindMatchmakeSessionByGatheringId_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    LstGid := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    LstGid := stream.List_uint32()
     rmcResult, LstMatchmakeSession := Matchmake_Extension_FindMatchmakeSessionByGatheringId(LstGid)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.MatchmakeSession) { innerStream.Struct(data) }, LstMatchmakeSession)
+    responseStream.List_MatchmakeSession(LstMatchmakeSession)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3480,7 +3479,7 @@ func Matchmake_Extension_FindMatchmakeSessionBySingleGatheringId_Wrapper(req NEX
     Gid := stream.UInt32LE()
     rmcResult, MatchmakeSession := Matchmake_Extension_FindMatchmakeSessionBySingleGatheringId(Gid)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(MatchmakeSession)
+    responseStream.Struct_MatchmakeSession(MatchmakeSession)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3492,10 +3491,10 @@ func Matchmake_Extension_FindMatchmakeSessionBySingleGatheringId_Wrapper(req NEX
 func Matchmake_Extension_FindMatchmakeSessionByOwner_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     Id := NEX.PID(stream.UInt32LE())
-    ResultRange := stream.Struct("ResultRange").(NEX.ResultRange)
+    ResultRange := stream.Struct_ResultRange()
     rmcResult, LstMatchmakeSession := Matchmake_Extension_FindMatchmakeSessionByOwner(Id,ResultRange)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.MatchmakeSession) { innerStream.Struct(data) }, LstMatchmakeSession)
+    responseStream.List_MatchmakeSession(LstMatchmakeSession)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3506,10 +3505,10 @@ func Matchmake_Extension_FindMatchmakeSessionByOwner_Wrapper(req NEX.RMCRequest)
 }
 func Matchmake_Extension_FindMatchmakeSessionByParticipant_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Param := stream.Struct("FindMatchmakeSessionByParticipantParam").(NEX.FindMatchmakeSessionByParticipantParam)
+    Param := stream.Struct_FindMatchmakeSessionByParticipantParam()
     rmcResult, LstSession := Matchmake_Extension_FindMatchmakeSessionByParticipant(Param)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.FindMatchmakeSessionByParticipantResult) { innerStream.Struct(data) }, LstSession)
+    responseStream.List_FindMatchmakeSessionByParticipantResult(LstSession)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3520,10 +3519,10 @@ func Matchmake_Extension_FindMatchmakeSessionByParticipant_Wrapper(req NEX.RMCRe
 }
 func Matchmake_Extension_BrowseMatchmakeSessionNoHolderNoResultRange_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    SearchCriteria := stream.Struct("MatchmakeSessionSearchCriteria").(NEX.MatchmakeSessionSearchCriteria)
+    SearchCriteria := stream.Struct_MatchmakeSessionSearchCriteria()
     rmcResult, LstMatchmakeSession := Matchmake_Extension_BrowseMatchmakeSessionNoHolderNoResultRange(SearchCriteria)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.MatchmakeSession) { innerStream.Struct(data) }, LstMatchmakeSession)
+    responseStream.List_MatchmakeSession(LstMatchmakeSession)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3534,11 +3533,11 @@ func Matchmake_Extension_BrowseMatchmakeSessionNoHolderNoResultRange_Wrapper(req
 }
 func Matchmake_Extension_BrowseMatchmakeSessionWithHostUrlsNoHolderNoResultRange_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    SearchCriteria := stream.Struct("MatchmakeSessionSearchCriteria").(NEX.MatchmakeSessionSearchCriteria)
+    SearchCriteria := stream.Struct_MatchmakeSessionSearchCriteria()
     rmcResult, LstMatchmakeSession,LstGatheringUrls := Matchmake_Extension_BrowseMatchmakeSessionWithHostUrlsNoHolderNoResultRange(SearchCriteria)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.MatchmakeSession) { innerStream.Struct(data) }, LstMatchmakeSession)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.GatheringURLs) { innerStream.Struct(data) }, LstGatheringUrls)
+    responseStream.List_MatchmakeSession(LstMatchmakeSession)
+    responseStream.List_GatheringURLs(LstGatheringUrls)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3549,7 +3548,7 @@ func Matchmake_Extension_BrowseMatchmakeSessionWithHostUrlsNoHolderNoResultRange
 }
 func Message_Delivery_DeliverMessage_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    OUserMessage := stream.Struct("Data").(NEX.Data)
+    OUserMessage := stream.Struct_Data()
     rmcResult := Message_Delivery_DeliverMessage(OUserMessage)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -3562,12 +3561,12 @@ func Message_Delivery_DeliverMessage_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRes
 }
 func Messaging_DeliverMessage_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    OUserMessage := stream.Struct("Data").(NEX.Data)
+    OUserMessage := stream.Struct_Data()
     rmcResult, OModifiedMessage,LstSandboxNodeId,LstParticipants := Messaging_DeliverMessage(OUserMessage)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(OModifiedMessage)
-    responseStream.List(func (innerStream *NEX.OutputStream, data uint32) { innerStream.UInt32LE(data) }, LstSandboxNodeId)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.PID) { innerStream.UInt32LE(uint32(data)) }, LstParticipants)
+    responseStream.Struct_Data(OModifiedMessage)
+    responseStream.List_uint32(LstSandboxNodeId)
+    responseStream.List_PID(LstParticipants)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3578,7 +3577,7 @@ func Messaging_DeliverMessage_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) 
 }
 func Messaging_GetNumberOfMessages_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Recipient := stream.Struct("MessageRecipient").(NEX.MessageRecipient)
+    Recipient := stream.Struct_MessageRecipient()
     rmcResult, UiNbMessages := Messaging_GetNumberOfMessages(Recipient)
     responseStream := NEX.NewOutputStream()
     responseStream.UInt32LE(UiNbMessages)
@@ -3592,11 +3591,11 @@ func Messaging_GetNumberOfMessages_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespo
 }
 func Messaging_GetMessagesHeaders_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Recipient := stream.Struct("MessageRecipient").(NEX.MessageRecipient)
-    Range := stream.Struct("ResultRange").(NEX.ResultRange)
+    Recipient := stream.Struct_MessageRecipient()
+    Range := stream.Struct_ResultRange()
     rmcResult, LstMsgHeaders := Messaging_GetMessagesHeaders(Recipient,Range)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.UserMessage) { innerStream.Struct(data) }, LstMsgHeaders)
+    responseStream.List_UserMessage(LstMsgHeaders)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3607,11 +3606,11 @@ func Messaging_GetMessagesHeaders_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
 }
 func Messaging_RetrieveAllMessagesWithinRange_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Recipient := stream.Struct("MessageRecipient").(NEX.MessageRecipient)
-    Range := stream.Struct("ResultRange").(NEX.ResultRange)
+    Recipient := stream.Struct_MessageRecipient()
+    Range := stream.Struct_ResultRange()
     rmcResult, LstMessages := Messaging_RetrieveAllMessagesWithinRange(Recipient,Range)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Data) { innerStream.Struct(data) }, LstMessages)
+    responseStream.List_Data(LstMessages)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3622,12 +3621,12 @@ func Messaging_RetrieveAllMessagesWithinRange_Wrapper(req NEX.RMCRequest) (ret N
 }
 func Messaging_RetrieveMessages_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Recipient := stream.Struct("MessageRecipient").(NEX.MessageRecipient)
-    LstMsgIDs := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    Recipient := stream.Struct_MessageRecipient()
+    LstMsgIDs := stream.List_uint32()
     BLeaveOnServer := stream.Bool()
     rmcResult, LstMessages := Messaging_RetrieveMessages(Recipient,LstMsgIDs,BLeaveOnServer)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Data) { innerStream.Struct(data) }, LstMessages)
+    responseStream.List_Data(LstMessages)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3638,8 +3637,8 @@ func Messaging_RetrieveMessages_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse
 }
 func Messaging_DeleteMessages_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Recipient := stream.Struct("MessageRecipient").(NEX.MessageRecipient)
-    LstMessagesToDelete := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
+    Recipient := stream.Struct_MessageRecipient()
+    LstMessagesToDelete := stream.List_uint32()
     rmcResult := Messaging_DeleteMessages(Recipient,LstMessagesToDelete)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -3652,7 +3651,7 @@ func Messaging_DeleteMessages_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) 
 }
 func Messaging_DeleteAllMessages_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Recipient := stream.Struct("MessageRecipient").(NEX.MessageRecipient)
+    Recipient := stream.Struct_MessageRecipient()
     rmcResult, UiNbDeletedMessages := Messaging_DeleteAllMessages(Recipient)
     responseStream := NEX.NewOutputStream()
     responseStream.UInt32LE(UiNbDeletedMessages)
@@ -3679,7 +3678,7 @@ func Monitoring_PingDaemon_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 func Monitoring_GetClusterMembers_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     rmcResult, StrValues := Monitoring_GetClusterMembers()
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data string) { innerStream.String(string(data)) }, StrValues)
+    responseStream.List_string(StrValues)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3690,7 +3689,7 @@ func Monitoring_GetClusterMembers_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
 }
 func NAT_Traversal_RequestProbeInitiation_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    UrlTargetList := stream.List("StationURL", func (innerStream *NEX.InputStream) NEX.StationURL { return NEX.StationURL(innerStream.String()) }).([]NEX.StationURL)
+    UrlTargetList := stream.List_StationURL()
     rmcResult := NAT_Traversal_RequestProbeInitiation(UrlTargetList)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -3716,7 +3715,7 @@ func NAT_Traversal_InitiateProbe_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespons
 }
 func NAT_Traversal_RequestProbeInitiationExt_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    UrlTargetList := stream.List("StationURL", func (innerStream *NEX.InputStream) NEX.StationURL { return NEX.StationURL(innerStream.String()) }).([]NEX.StationURL)
+    UrlTargetList := stream.List_StationURL()
     UrlStationToProbe := NEX.StationURL(stream.String())
     rmcResult := NAT_Traversal_RequestProbeInitiationExt(UrlTargetList,UrlStationToProbe)
     responseStream := NEX.NewOutputStream()
@@ -3793,7 +3792,7 @@ func NAT_Traversal_ReportNATTraversalResultDetail_Wrapper(req NEX.RMCRequest) (r
 }
 func Nintendo_Notifications_ProcessNintendoNotificationEvent_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    EventObject := stream.Struct("NintendoNotificationEvent").(NEX.NintendoNotificationEvent)
+    EventObject := stream.Struct_NintendoNotificationEvent()
     rmcResult := Nintendo_Notifications_ProcessNintendoNotificationEvent(EventObject)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -3806,7 +3805,7 @@ func Nintendo_Notifications_ProcessNintendoNotificationEvent_Wrapper(req NEX.RMC
 }
 func Notifications_ProcessNotificationEvent_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    OEvent := stream.Struct("NotificationEvent").(NEX.NotificationEvent)
+    OEvent := stream.Struct_NotificationEvent()
     rmcResult := Notifications_ProcessNotificationEvent(OEvent)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -3822,7 +3821,7 @@ func Persistent_Store_FindByGroup_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
     UiGroup := stream.UInt32LE()
     rmcResult, LstTags := Persistent_Store_FindByGroup(UiGroup)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data string) { innerStream.String(string(data)) }, LstTags)
+    responseStream.List_string(LstTags)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3883,7 +3882,7 @@ func Persistent_Store_InsertCustomItem_Wrapper(req NEX.RMCRequest) (ret NEX.RMCR
     stream := NEX.NewInputStream(req.Parameters)
     UiGroup := stream.UInt32LE()
     StrTag := string(stream.String())
-    HData := stream.Struct("Data").(NEX.Data)
+    HData := stream.Struct_Data()
     BReplace := stream.Bool()
     rmcResult := Persistent_Store_InsertCustomItem(UiGroup,StrTag,HData,BReplace)
     responseStream := NEX.NewOutputStream()
@@ -3901,7 +3900,7 @@ func Persistent_Store_GetCustomItem_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResp
     StrTag := string(stream.String())
     rmcResult, HData := Persistent_Store_GetCustomItem(UiGroup,StrTag)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(HData)
+    responseStream.Struct_Data(HData)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3917,7 +3916,7 @@ func Persistent_Store_FindItemsBySQLQuery_Wrapper(req NEX.RMCRequest) (ret NEX.R
     StrQuery := string(stream.String())
     rmcResult, LstData := Persistent_Store_FindItemsBySQLQuery(UiGroup,StrTag,StrQuery)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.Data) { innerStream.Struct(data) }, LstData)
+    responseStream.List_Data(LstData)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -3928,7 +3927,7 @@ func Persistent_Store_FindItemsBySQLQuery_Wrapper(req NEX.RMCRequest) (ret NEX.R
 }
 func Ranking_UploadScore_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    ScoreData := stream.Struct("RankingScoreData").(NEX.RankingScoreData)
+    ScoreData := stream.Struct_RankingScoreData()
     UniqueId := stream.UInt64LE()
     rmcResult := Ranking_UploadScore(ScoreData,UniqueId)
     responseStream := NEX.NewOutputStream()
@@ -4011,7 +4010,7 @@ func Ranking_GetCommonData_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 func Ranking_ChangeAttributes_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     Category := stream.UInt32LE()
-    ChangeParam := stream.Struct("RankingChangeAttributesParam").(NEX.RankingChangeAttributesParam)
+    ChangeParam := stream.Struct_RankingChangeAttributesParam()
     UniqueId := stream.UInt64LE()
     rmcResult := Ranking_ChangeAttributes(Category,ChangeParam,UniqueId)
     responseStream := NEX.NewOutputStream()
@@ -4025,7 +4024,7 @@ func Ranking_ChangeAttributes_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) 
 }
 func Ranking_ChangeAllAttributes_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    ChangeParam := stream.Struct("RankingChangeAttributesParam").(NEX.RankingChangeAttributesParam)
+    ChangeParam := stream.Struct_RankingChangeAttributesParam()
     UniqueId := stream.UInt64LE()
     rmcResult := Ranking_ChangeAllAttributes(ChangeParam,UniqueId)
     responseStream := NEX.NewOutputStream()
@@ -4041,12 +4040,12 @@ func Ranking_GetRanking_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     RankingMode := stream.UInt8()
     Category := stream.UInt32LE()
-    OrderParam := stream.Struct("RankingOrderParam").(NEX.RankingOrderParam)
+    OrderParam := stream.Struct_RankingOrderParam()
     UniqueId := stream.UInt64LE()
     PrincipalId := NEX.PID(stream.UInt32LE())
     rmcResult, PResult := Ranking_GetRanking(RankingMode,Category,OrderParam,UniqueId,PrincipalId)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PResult)
+    responseStream.Struct_RankingResult(PResult)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -4058,7 +4057,7 @@ func Ranking_GetRanking_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 func Ranking_GetApproxOrder_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     Category := stream.UInt32LE()
-    OrderParam := stream.Struct("RankingOrderParam").(NEX.RankingOrderParam)
+    OrderParam := stream.Struct_RankingOrderParam()
     Score := stream.UInt32LE()
     UniqueId := stream.UInt64LE()
     PrincipalId := stream.UInt32LE()
@@ -4076,11 +4075,11 @@ func Ranking_GetApproxOrder_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 func Ranking_GetStats_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     Category := stream.UInt32LE()
-    OrderParam := stream.Struct("RankingOrderParam").(NEX.RankingOrderParam)
+    OrderParam := stream.Struct_RankingOrderParam()
     Flags := stream.UInt32LE()
     rmcResult, PStats := Ranking_GetStats(Category,OrderParam,Flags)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PStats)
+    responseStream.Struct_RankingStats(PStats)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -4091,14 +4090,14 @@ func Ranking_GetStats_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 }
 func Ranking_GetRankingByPIDList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    PrincipalIdList := stream.List("PID", func (innerStream *NEX.InputStream) NEX.PID { return NEX.PID(innerStream.UInt32LE()) }).([]NEX.PID)
+    PrincipalIdList := stream.List_PID()
     RankingMode := stream.UInt8()
     Category := stream.UInt32LE()
-    OrderParam := stream.Struct("RankingOrderParam").(NEX.RankingOrderParam)
+    OrderParam := stream.Struct_RankingOrderParam()
     UniqueId := stream.UInt64LE()
     rmcResult, PResult := Ranking_GetRankingByPIDList(PrincipalIdList,RankingMode,Category,OrderParam,UniqueId)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PResult)
+    responseStream.Struct_RankingResult(PResult)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -4109,14 +4108,14 @@ func Ranking_GetRankingByPIDList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespons
 }
 func Ranking_GetRankingByUniqueIdList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    NexUniqueIdList := stream.List("Uint64", func (innerStream *NEX.InputStream) uint64 { return innerStream.UInt64LE() }).([]uint64)
+    NexUniqueIdList := stream.List_uint64()
     RankingMode := stream.UInt8()
     Category := stream.UInt32LE()
-    OrderParam := stream.Struct("RankingOrderParam").(NEX.RankingOrderParam)
+    OrderParam := stream.Struct_RankingOrderParam()
     UniqueId := stream.UInt64LE()
     rmcResult, PResult := Ranking_GetRankingByUniqueIdList(NexUniqueIdList,RankingMode,Category,OrderParam,UniqueId)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PResult)
+    responseStream.Struct_RankingResult(PResult)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -4128,10 +4127,10 @@ func Ranking_GetRankingByUniqueIdList_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRe
 func Ranking_GetCachedTopXRanking_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     Category := stream.UInt32LE()
-    OrderParam := stream.Struct("RankingOrderParam").(NEX.RankingOrderParam)
+    OrderParam := stream.Struct_RankingOrderParam()
     rmcResult, PResult := Ranking_GetCachedTopXRanking(Category,OrderParam)
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PResult)
+    responseStream.Struct_RankingCachedResult(PResult)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -4142,11 +4141,11 @@ func Ranking_GetCachedTopXRanking_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
 }
 func Ranking_GetCachedTopXRankings_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    Categories := stream.List("Uint32", func (innerStream *NEX.InputStream) uint32 { return innerStream.UInt32LE() }).([]uint32)
-    OrderParams := stream.List("RankingOrderParam", func (innerStream *NEX.InputStream) NEX.RankingOrderParam { return innerStream.Struct("RankingOrderParam").(NEX.RankingOrderParam) }).([]NEX.RankingOrderParam)
+    Categories := stream.List_uint32()
+    OrderParams := stream.List_RankingOrderParam()
     rmcResult, PResults := Ranking_GetCachedTopXRankings(Categories,OrderParams)
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.RankingCachedResult) { innerStream.Struct(data) }, PResults)
+    responseStream.List_RankingCachedResult(PResults)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -4170,7 +4169,7 @@ func Remote_Log_Device_Log_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
 }
 func Secure_Connection_Register_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    VecMyURLs := stream.List("StationURL", func (innerStream *NEX.InputStream) NEX.StationURL { return NEX.StationURL(innerStream.String()) }).([]NEX.StationURL)
+    VecMyURLs := stream.List_StationURL()
     rmcResult, returnValue,PidConnectionID,UrlPublic := Secure_Connection_Register(VecMyURLs)
     responseStream := NEX.NewOutputStream()
     responseStream.UInt32LE(uint32(returnValue))
@@ -4191,7 +4190,7 @@ func Secure_Connection_RequestConnectionData_Wrapper(req NEX.RMCRequest) (ret NE
     rmcResult, returnValue,PvecConnectionsData := Secure_Connection_RequestConnectionData(CidTarget,PidTarget)
     responseStream := NEX.NewOutputStream()
     responseStream.Bool(returnValue)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.ConnectionData) { innerStream.Struct(data) }, PvecConnectionsData)
+    responseStream.List_ConnectionData(PvecConnectionsData)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -4207,7 +4206,7 @@ func Secure_Connection_RequestUrls_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespo
     rmcResult, returnValue,PlstURLs := Secure_Connection_RequestUrls(CidTarget,PidTarget)
     responseStream := NEX.NewOutputStream()
     responseStream.Bool(returnValue)
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.StationURL) { innerStream.String(string(data)) }, PlstURLs)
+    responseStream.List_StationURL(PlstURLs)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -4218,8 +4217,8 @@ func Secure_Connection_RequestUrls_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespo
 }
 func Secure_Connection_RegisterEx_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    VecMyURLs := stream.List("StationURL", func (innerStream *NEX.InputStream) NEX.StationURL { return NEX.StationURL(innerStream.String()) }).([]NEX.StationURL)
-    HCustomData := stream.Struct("Data").(NEX.Data)
+    VecMyURLs := stream.List_StationURL()
+    HCustomData := stream.Struct_Data()
     rmcResult, returnValue,PidConnectionID,UrlPublic := Secure_Connection_RegisterEx(VecMyURLs,HCustomData)
     responseStream := NEX.NewOutputStream()
     responseStream.UInt32LE(uint32(returnValue))
@@ -4246,7 +4245,7 @@ func Secure_Connection_TestConnectivity_Wrapper(req NEX.RMCRequest) (ret NEX.RMC
 }
 func Secure_Connection_UpdateURLs_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    VecMyURLs := stream.List("StationURL", func (innerStream *NEX.InputStream) NEX.StationURL { return NEX.StationURL(innerStream.String()) }).([]NEX.StationURL)
+    VecMyURLs := stream.List_StationURL()
     rmcResult := Secure_Connection_UpdateURLs(VecMyURLs)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -4274,7 +4273,7 @@ func Secure_Connection_ReplaceURL_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
 func Secure_Connection_SendReport_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     ReportId := stream.UInt32LE()
-    ReportData := stream.Buffer()
+    ReportData := stream.QBuffer()
     rmcResult := Secure_Connection_SendReport(ReportId,ReportData)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -4288,13 +4287,13 @@ func Secure_Connection_SendReport_Wrapper(req NEX.RMCRequest) (ret NEX.RMCRespon
 func Simple_Authentication_LoginWithTokenEx_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
     StrToken := string(stream.String())
-    PConnectionData := stream.Struct("RVConnectionData").(NEX.RVConnectionData)
-    OAnyData := stream.Struct("Data").(NEX.Data)
+    PConnectionData := stream.Struct_RVConnectionData()
+    OAnyData := stream.Struct_Data()
     rmcResult, returnValue,PidPrincipal,PConnectionData,StrReturnMsg := Simple_Authentication_LoginWithTokenEx(StrToken,PConnectionData,OAnyData)
     responseStream := NEX.NewOutputStream()
     responseStream.UInt32LE(uint32(returnValue))
     responseStream.UInt32LE(PidPrincipal)
-    responseStream.Struct(PConnectionData)
+    responseStream.Struct_RVConnectionData(PConnectionData)
     responseStream.String(string(StrReturnMsg))
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
@@ -4319,7 +4318,7 @@ func Utility_AcquireNexUniqueId_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse
 func Utility_AcquireNexUniqueIdWithPassword_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     rmcResult, PNexUniqueIdInfo := Utility_AcquireNexUniqueIdWithPassword()
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PNexUniqueIdInfo)
+    responseStream.Struct_UniqueIdInfo(PNexUniqueIdInfo)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -4330,7 +4329,7 @@ func Utility_AcquireNexUniqueIdWithPassword_Wrapper(req NEX.RMCRequest) (ret NEX
 }
 func Utility_AssociateNexUniqueIdWithMyPrincipalId_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    UniqueIdInfo := stream.Struct("UniqueIdInfo").(NEX.UniqueIdInfo)
+    UniqueIdInfo := stream.Struct_UniqueIdInfo()
     rmcResult := Utility_AssociateNexUniqueIdWithMyPrincipalId(UniqueIdInfo)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -4343,7 +4342,7 @@ func Utility_AssociateNexUniqueIdWithMyPrincipalId_Wrapper(req NEX.RMCRequest) (
 }
 func Utility_AssociateNexUniqueIdsWithMyPrincipalId_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     stream := NEX.NewInputStream(req.Parameters)
-    UniqueIdInfo := stream.List("UniqueIdInfo", func (innerStream *NEX.InputStream) NEX.UniqueIdInfo { return innerStream.Struct("UniqueIdInfo").(NEX.UniqueIdInfo) }).([]NEX.UniqueIdInfo)
+    UniqueIdInfo := stream.List_UniqueIdInfo()
     rmcResult := Utility_AssociateNexUniqueIdsWithMyPrincipalId(UniqueIdInfo)
     responseStream := NEX.NewOutputStream()
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
@@ -4357,7 +4356,7 @@ func Utility_AssociateNexUniqueIdsWithMyPrincipalId_Wrapper(req NEX.RMCRequest) 
 func Utility_GetAssociatedNexUniqueIdWithMyPrincipalId_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     rmcResult, PUniqueIdInfo := Utility_GetAssociatedNexUniqueIdWithMyPrincipalId()
     responseStream := NEX.NewOutputStream()
-    responseStream.Struct(PUniqueIdInfo)
+    responseStream.Struct_UniqueIdInfo(PUniqueIdInfo)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -4369,7 +4368,7 @@ func Utility_GetAssociatedNexUniqueIdWithMyPrincipalId_Wrapper(req NEX.RMCReques
 func Utility_GetAssociatedNexUniqueIdsWithMyPrincipalId_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {
     rmcResult, PUniqueIdInfo := Utility_GetAssociatedNexUniqueIdsWithMyPrincipalId()
     responseStream := NEX.NewOutputStream()
-    responseStream.List(func (innerStream *NEX.OutputStream, data NEX.UniqueIdInfo) { innerStream.Struct(data) }, PUniqueIdInfo)
+    responseStream.List_UniqueIdInfo(PUniqueIdInfo)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -4383,7 +4382,7 @@ func Utility_GetIntegerSettings_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse
     IntegerSettingIndex := stream.UInt32LE()
     rmcResult, IntegerSettings := Utility_GetIntegerSettings(IntegerSettingIndex)
     responseStream := NEX.NewOutputStream()
-    responseStream.Map(func (innerStream *NEX.OutputStream, key uint16, value int32) { innerStream.UInt16LE(key); innerStream.Int32LE(value) }, IntegerSettings)
+    responseStream.Map_uint16_int32(IntegerSettings)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
@@ -4397,7 +4396,7 @@ func Utility_GetStringSettings_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse)
     StringSettingIndex := stream.UInt32LE()
     rmcResult, StringSettings := Utility_GetStringSettings(StringSettingIndex)
     responseStream := NEX.NewOutputStream()
-    responseStream.Map(func (innerStream *NEX.OutputStream, key uint16, value string) { innerStream.UInt16LE(key); innerStream.String(string(value)) }, StringSettings)
+    responseStream.Map_uint16_string(StringSettings)
     ret = NEX.NewRMCResponse(int(req.ProtocolID & ^uint8(0x80)), req.CallID)
     if rmcResult == 0x00010001  {
     	ret.SetSuccess(req.MethodID, responseStream.Bytes())
