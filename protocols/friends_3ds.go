@@ -78,13 +78,13 @@ func Friends_3DS_UpdatePresence(PresenceInfo NEX.NintendoPresence, Unknown bool)
 
 func Friends_3DS_UpdateFavoriteGameKey(GameKey NEX.GameKey) (rmcResult uint32, ) {
     println("Hit Friends_3DS_UpdateFavoriteGameKey")
-    rmcResult = 0x80010002
+    rmcResult = 0x00010001
     return
 }
 
 func Friends_3DS_UpdateComment(Comment string) (rmcResult uint32, ) {
     println("Hit Friends_3DS_UpdateComment")
-    rmcResult = 0x80010002
+    rmcResult = 0x00010001
     return
 }
 

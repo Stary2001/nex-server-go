@@ -2,11 +2,8 @@ package protocols
 
 import (
 	NEX "github.com/Stary2001/nex-go"
-//	sqlite3 "github.com/mattn/go-sqlite3"
-//	"database/sql"
 	"strconv"
 	)
-// pq "github.com/lib/pq"
 
 func makeTicket(data []byte, secure_key []byte) []byte {
 	//secure_key + unk_u32 + struct.pack("I", len(ticket_data))
@@ -21,9 +18,8 @@ func Authentication_Login(username string) (rmcResult uint32, result NEX.Result,
 	rmcResult = 0x00010001
 	result = 0x00010001
 
-	
-	//password := "|+GF-i):/7Z87_:q"
-	password := "testing"
+	// TODO: proper username -> pid mapping, proper password retrieval.
+	password := "|+GF-i):/7Z87_:q"
 
 	if(username == "guest") {
 		pid = 100
@@ -40,7 +36,8 @@ func Authentication_Login(username string) (rmcResult uint32, result NEX.Result,
 	}
 	Kerberos := NEX.NewKerberos(string(key))
 	secureKey := "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-	memes := "\x10\x00\x00\x00\xdds,@\t\xde\x94r$\xa4\xaeB\xad\xf9\xb1\xca,\x00\x00\x00pI\xbd\x8f\xc0\xeb\xb1\x92\xb2]s1\xa9G\xb9\xfe\xe4\x960\xd7\x13\x9co\x97]\xb2E\xfb\x0c`\xae\xab\xeb(\x7f\xb5\xf8\x9aoQ\xa0-\xad\xe5"
+	// This just needs to not be empty.
+	memes := "\x00"
 	ticket = Kerberos.Encrypt(makeTicket([]byte(memes), []byte(secureKey)))
 
 	station.UrlRegularProtocols = "prudps:/address=192.168.137.1;port=60901;CID=1;PID=2;sid=1;stream=10;type=2"	
@@ -57,11 +54,12 @@ func Authentication_LoginEx(StrUserName string, OExtraData NEX.Data) (rmcResult 
 func Authentication_RequestTicket(user_pid NEX.PID, server_pid NEX.PID) (rmcResult uint32, result int, ticket []byte) {
 	rmcResult = 0x00010001
 	result = 0x00010001
-	password := "testing"
+
+	// TODO: proper password lookup
+	password := "|+GF-i):/7Z87_:q"
 	if(user_pid == 100) {
 		password = "MMQea3n!fsik"
 	}
-	//password := "|+GF-i):/7Z87_:q"
 
 	key := []byte(password)
 

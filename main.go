@@ -102,7 +102,7 @@ func main() {
 	chat_settings := NEX.NewSettings()
 	chat_settings.PrudpVersion = 1
 	chat_settings.KerberosKeySize = 32
-	chat_settings.AccessKey = "25dbf96a"
+	chat_settings.AccessKey = "e7a47214"
 
 	fmt.Println("starting memes")
 
