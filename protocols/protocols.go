@@ -4,7 +4,7 @@ import (
 	NEX "github.com/Stary2001/nex-go"
 )
 
-type NEXMethod func(NEX.RMCRequest) (NEX.RMCResponse)
+type NEXMethod func (*NEX.Client, NEX.RMCRequest) (NEX.RMCResponse)
 type NEXProtocol struct
 {
 	ProtocolID uint8

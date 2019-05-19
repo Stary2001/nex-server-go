@@ -24,7 +24,7 @@ func nexServerHandleData(Client *NEX.Client, Packet *NEX.Packet) {
 	if ok {
 		method, ok := proto.Methods[Packet.RMCRequest.MethodID]
 		if ok {
-			response = method(Packet.RMCRequest)
+			response = method(Client, Packet.RMCRequest)
 		} else {
 			// response := failure
 			panic(fmt.Sprintf("Unimplemented method %08x in protocol %02x!", Packet.RMCRequest.MethodID, proto_id))
@@ -55,8 +55,6 @@ func secureServerHandleConnect(Client *NEX.Client, Packet *NEX.Packet) {
 		secureKey = "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
 	}
 
-	Client.SetKey(secureKey)
-
 	Kerberos := NEX.NewKerberos(secureKey)
 	checkDataDecrypted := Kerberos.Decrypt(checkData)
 	checkStream := NEX.NewInputStream(checkDataDecrypted)
@@ -64,13 +62,15 @@ func secureServerHandleConnect(Client *NEX.Client, Packet *NEX.Packet) {
 	_ = checkStream.UInt32LE()
 	check := checkStream.UInt32LE()
 
-	
 	outStream := NEX.NewOutputStream()
 	outStream.UInt32LE(check + 1)
 	outRealStream := NEX.NewOutputStream()
 	outRealStream.Buffer(outStream.Bytes())
 
 	Client.Server.AcknowledgeWithPayload(Packet, outRealStream.Bytes())
+
+	// Important that we set the key _last_. The secure key is not included in the CONNECT ack signature.
+	Client.SetKey(secureKey)
 }
 
 func createNexServer(settings NEX.Settings) *NEX.Server {
@@ -93,16 +93,22 @@ func main() {
 	settings.PrudpV0SignatureVersion = 1
 	settings.KerberosKeySize = 16
 	settings.AccessKey = "ridfebb9"
+	settings.AuthPort = 60900
+	settings.SecurePort = 60901
 
 	mk8_settings := NEX.NewSettings()
 	mk8_settings.PrudpVersion = 1
 	mk8_settings.KerberosKeySize = 32
 	mk8_settings.AccessKey = "25dbf96a"
+	mk8_settings.AuthPort = 60800
+	mk8_settings.SecurePort = 60801
 
 	chat_settings := NEX.NewSettings()
 	chat_settings.PrudpVersion = 1
 	chat_settings.KerberosKeySize = 32
 	chat_settings.AccessKey = "e7a47214"
+	chat_settings.AuthPort = 60700
+	chat_settings.SecurePort = 60701
 
 	fmt.Println("starting memes")
 
@@ -115,7 +121,7 @@ func main() {
 		Client.Server.Kick(*Client)
 	})
 
-	go AuthServer.Listen(":60900")
+	go AuthServer.Listen(settings.AuthPort)
 
 	SecureServer := createNexServer(settings)
 	SecureServer.On("Connect", secureServerHandleConnect)
@@ -123,7 +129,7 @@ func main() {
 		Client.Server.Kick(*Client)
 	})
 
-	go SecureServer.Listen(":60901")
+	go SecureServer.Listen(settings.SecurePort)
 
 	MK8AuthServer := createNexServer(mk8_settings)
 	MK8AuthServer.On("Connect",  func(Client *NEX.Client, Packet *NEX.Packet) {
@@ -134,7 +140,7 @@ func main() {
 		Client.Server.Kick(*Client)
 	})
 
-	go MK8AuthServer.Listen(":60800")
+	go MK8AuthServer.Listen(mk8_settings.AuthPort)
 
 	MK8SecureServer := createNexServer(mk8_settings)
 	MK8SecureServer.On("Connect", secureServerHandleConnect)
@@ -142,7 +148,7 @@ func main() {
 		Client.Server.Kick(*Client)
 	})
 
-	go MK8SecureServer.Listen(":60801")
+	go MK8SecureServer.Listen(mk8_settings.SecurePort)
 
 	ChatAuthServer := createNexServer(chat_settings)
 	ChatAuthServer.On("Connect",  func(Client *NEX.Client, Packet *NEX.Packet) {
@@ -153,7 +159,7 @@ func main() {
 		Client.Server.Kick(*Client)
 	})
 
-	go ChatAuthServer.Listen(":60700")
+	go ChatAuthServer.Listen(chat_settings.AuthPort)
 
 	ChatSecureServer := createNexServer(chat_settings)
 	ChatSecureServer.On("Connect", secureServerHandleConnect)
@@ -161,5 +167,5 @@ func main() {
 		Client.Server.Kick(*Client)
 	})
 
-	ChatSecureServer.Listen(":60701")
+	ChatSecureServer.Listen(chat_settings.SecurePort)
 }

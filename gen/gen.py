@@ -644,7 +644,7 @@ for p in sorted(proto_info):
 		request_params = [field[0] for field in methods[m].request]
 		response_params = [field[0] for field in methods[m].response]
 
-		method_text = "func {}_{}_Wrapper(req NEX.RMCRequest) (ret NEX.RMCResponse) {{\n".format(proto_name, methods[m].name)
+		method_text = "func {}_{}_Wrapper(client *NEX.Client, req NEX.RMCRequest) (ret NEX.RMCResponse) {{\n".format(proto_name, methods[m].name)
 		if len(request_params) != 0:
 			method_text += "    stream := NEX.NewInputStream(req.Parameters)\n"
 
@@ -654,9 +654,9 @@ for p in sorted(proto_info):
 			method_text += "    {} := {}\n".format(field_name, field_type.load("stream"))
 
 		if len(response_params) != 0:
-			method_text += "    rmcResult, {} := {}_{}({})\n".format(",".join(response_params), proto_name, methods[m].name, ",".join(request_params))
+			method_text += "    rmcResult, {} := {}_{}(client, {})\n".format(",".join(response_params), proto_name, methods[m].name, ",".join(request_params))
 		else:
-			method_text += "    rmcResult := {}_{}({})\n".format(proto_name, methods[m].name, ",".join(request_params))
+			method_text += "    rmcResult := {}_{}(client, {})\n".format(proto_name, methods[m].name, ",".join(request_params))
 
 		method_text += "    responseStream := NEX.NewOutputStream()\n"
 		for field in methods[m].response:
@@ -697,7 +697,7 @@ for p in sorted(proto_info):
 	for m in sorted(methods):
 		request_params = [field[0] + " " + get_type(field[1]).type_name() for field in methods[m].request]
 		response_params = [field[0] + " " + get_type(field[1]).type_name() for field in methods[m].response]
-		method_text = "func {}_{}({}) (rmcResult uint32, {}) {{\n".format(proto_name, methods[m].name, ", ".join(request_params), ", ".join(response_params))
+		method_text = "func {}_{}(client *NEX.Client{}{}) (rmcResult uint32, {}) {{\n".format(proto_name, methods[m].name, ", " if len(request_params) != 0 else "", ", ".join(request_params), ", ".join(response_params))
 		method_text += "    rmcResult = 0x80010002\n    return\n"
 		method_text += "}\n"
 		stubs_file.write(method_text)
